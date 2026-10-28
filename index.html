@@ -303,12 +303,23 @@
       }).join('');
       lucide.createIcons();
     }
+
+    // FORMAT LOCATION WITH DEDUPLICATION (Removes "London • London" or duplicated areas/counties)
     function formatLocation(item) {
       let area = (item.area || '').trim(), city = (item.city || '').trim(), county = (item.county || '').trim(), country = (item.country || '').trim();
       if ((!country || country.toLowerCase() === 'england' || country.toLowerCase() === 'uk') && city && !county && ukCountyMap[city.toLowerCase()]) county = ukCountyMap[city.toLowerCase()];
       if (country.toLowerCase() === 'ireland' && county && !county.toLowerCase().startsWith('county')) county = `County ${county}`;
-      return [area, city, county, country].filter(Boolean).join(' • ');
+      
+      const rawParts = [area, city, county, country].filter(Boolean);
+      const uniqueParts = [];
+      rawParts.forEach(p => {
+        if (!uniqueParts.some(u => u.toLowerCase() === p.toLowerCase())) {
+          uniqueParts.push(p);
+        }
+      });
+      return uniqueParts.join(' • ');
     }
+
     function toggleForm() {
       const w = document.getElementById('formContainerWrapper'); w.classList.toggle('hidden');
       if (!w.classList.contains('hidden')) window.scrollTo({ top: 0, behavior: 'smooth' }); else resetFormState();
