@@ -196,6 +196,14 @@
       const notes = (item.notes || '').toLowerCase(), name = (item.pubName || '').toLowerCase();
       return notes.includes('no guinness') || name.includes('no guinness') || item.pintScore === 0;
     }
+    function hasActiveFilters() {
+      const search = document.getElementById('filterSearch') ? document.getElementById('filterSearch').value : '';
+      const country = document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : '';
+      const county = document.getElementById('filterCounty') ? document.getElementById('filterCounty').value : '';
+      const city = document.getElementById('filterCity') ? document.getElementById('filterCity').value : '';
+      const area = document.getElementById('filterArea') ? document.getElementById('filterArea').value : '';
+      return !!(search || country || county || city || area);
+    }
     function loadFromStorage() {
       const saved = localStorage.getItem('guinness_pints');
       if (saved) { try { pintEntries = JSON.parse(saved); } catch(e) { pintEntries = []; } }
@@ -242,7 +250,6 @@
       return false;
     }
 
-    // AUTO-REPAIRING JSON PARSER TO HANDLE MINOR SYNTAX/TRAILING COMMA ISSUES
     function processPastedJson() {
       const rawText = document.getElementById('rawJsonTextArea').value.trim();
       if (!rawText) return;
@@ -250,8 +257,8 @@
         let cleaned = rawText
           .replace(/[\u201C\u201D]/g, '"')
           .replace(/[\u2018\u2019]/g, "'")
-          .replace(/,\s*([}\\]])/g, '$1') // auto-remove trailing commas
-          .replace(/:\s*,/g, ': "",');    // auto-fix empty values like county: ,
+          .replace(/,\s*([}\\]])/g, '$1')
+          .replace(/:\s*,/g, ': "",');
 
         let parsed;
         try {
@@ -358,32 +365,41 @@
     }
     function initFilters() {
       const countries = [...new Set(pintEntries.map(e => e.country).filter(Boolean))].sort();
-      const sel = document.getElementById('filterCountry'), cur = sel.value;
-      sel.innerHTML = '<option value="">All Countries</option>' + countries.map(c => `<option value="${c}">${c}</option>`).join('');
-      sel.value = countries.includes(cur) ? cur : ''; onFilterCountryChange();
+      const sel = document.getElementById('filterCountry'), cur = sel ? sel.value : '';
+      if (sel) {
+        sel.innerHTML = '<option value="">All Countries</option>' + countries.map(c => `<option value="${c}">${c}</option>`).join('');
+        sel.value = countries.includes(cur) ? cur : '';
+      }
+      onFilterCountryChange();
     }
     function onFilterCountryChange() {
-      const c = document.getElementById('filterCountry').value, sel = document.getElementById('filterCounty');
+      const sel = document.getElementById('filterCounty'); if (!sel) return;
+      const c = document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : '';
       const filtered = c ? pintEntries.filter(e => e.country === c) : pintEntries;
       const counties = [...new Set(filtered.map(e => e.county).filter(Boolean))].sort(), cur = sel.value;
       sel.innerHTML = '<option value="">All Counties</option>' + counties.map(x => `<option value="${x}">${x}</option>`).join('');
-      sel.value = counties.includes(cur) ? cur : ''; onFilterCountryChange2();
+      sel.value = counties.includes(cur) ? cur : ''; onFilterCountyChange2();
     }
-    function onFilterCountryChange2() {
-      const c = document.getElementById('filterCountry').value, county = document.getElementById('filterCounty').value, sel = document.getElementById('filterCity');
+    function onFilterCountyChange2() {
+      const sel = document.getElementById('filterCity'); if (!sel) return;
+      const c = document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : '';
+      const county = document.getElementById('filterCounty') ? document.getElementById('filterCounty').value : '';
       let filtered = pintEntries; if (c) filtered = filtered.filter(e => e.country === c); if (county) filtered = filtered.filter(e => e.county === county);
       const cities = [...new Set(filtered.map(e => e.city).filter(Boolean))].sort(), cur = sel.value;
       sel.innerHTML = '<option value="">All Cities/Towns</option>' + cities.map(x => `<option value="${x}">${x}</option>`).join('');
       sel.value = cities.includes(cur) ? cur : ''; onFilterCityChange();
     }
     function onFilterCityChange() {
-      const c = document.getElementById('filterCountry').value, county = document.getElementById('filterCounty').value, city = document.getElementById('filterCity').value, sel = document.getElementById('filterArea');
+      const sel = document.getElementById('filterArea'); if (!sel) return;
+      const c = document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : '';
+      const county = document.getElementById('filterCounty') ? document.getElementById('filterCounty').value : '';
+      const city = document.getElementById('filterCity') ? document.getElementById('filterCity').value : '';
       let filtered = pintEntries; if (c) filtered = filtered.filter(e => e.country === c); if (county) filtered = filtered.filter(e => e.county === county); if (city) filtered = filtered.filter(e => e.city === city);
       const areas = [...new Set(filtered.map(e => e.area).filter(Boolean))].sort(), cur = sel.value;
       sel.innerHTML = '<option value="">All Areas</option>' + areas.map(x => `<option value="${x}">${x}</option>`).join('');
       sel.value = areas.includes(cur) ? cur : ''; renderApp();
     }
-    function resetFilters() { ['filterSearch','filterCountry','filterCounty','filterCity','filterArea'].forEach(id => document.getElementById(id).value = ''); initFilters(); }
+    function resetFilters() { ['filterSearch','filterCountry','filterCounty','filterCity','filterArea'].forEach(id => { if (document.getElementById(id)) document.getElementById(id).value = ''; }); initFilters(); }
     function setView(v) {
       currentView = v;
       document.getElementById('btnTableView').className = `px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 ${v==='table'?'text-accent bg-stone-800':'text-stone-400'}`;
@@ -401,21 +417,28 @@
       return `<span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-accent-soft text-accent border border-accent-soft shadow-sm">${(parseFloat(score)||0).toFixed(2)}</span>`;
     }
     function renderApp() {
-      const search = document.getElementById('filterSearch').value.toLowerCase(), country = document.getElementById('filterCountry').value, county = document.getElementById('filterCounty').value, city = document.getElementById('filterCity').value, area = document.getElementById('filterArea').value, sortBy = document.getElementById('sortBy').value;
+      const search = document.getElementById('filterSearch') ? document.getElementById('filterSearch').value.toLowerCase() : '';
+      const country = document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : '';
+      const county = document.getElementById('filterCounty') ? document.getElementById('filterCounty').value : '';
+      const city = document.getElementById('filterCity') ? document.getElementById('filterCity').value : '';
+      const area = document.getElementById('filterArea') ? document.getElementById('filterArea').value : '';
+      const sortBy = document.getElementById('sortBy') ? document.getElementById('sortBy').value : 'avg-desc';
+      
       const hasFilters = search || country || county || city || area;
-      document.getElementById('filterActiveBadge').classList.toggle('hidden', !hasFilters);
-      document.getElementById('activeFilterSummary').innerText = hasFilters ? `Filtered view` : `Showing all ${pintEntries.length} entries`;
+      if (document.getElementById('filterActiveBadge')) document.getElementById('filterActiveBadge').classList.toggle('hidden', !hasFilters);
+      if (document.getElementById('activeFilterSummary')) document.getElementById('activeFilterSummary').innerText = hasFilters ? `Filtered view` : `Showing all ${pintEntries.length} entries`;
 
       let filtered = pintEntries.filter(i => {
-        const sMatch = !search || i.pubName.toLowerCase().includes(search) || (i.city && i.city.toLowerCase().includes(search)) || (i.notes && i.notes.toLowerCase().includes(search));
+        const sMatch = !search || (i.pubName && i.pubName.toLowerCase().includes(search)) || (i.city && i.city.toLowerCase().includes(search)) || (i.notes && i.notes.toLowerCase().includes(search));
         return sMatch && (!country || i.country === country) && (!county || i.county === county) && (!city || i.city === city) && (!area || i.area === area);
       });
 
       let main = filtered.filter(i => !isNoGuinness(i)), unranked = filtered.filter(i => isNoGuinness(i));
-      main.sort((a,b) => sortBy==='avg-desc'?b.avgScore-a.avgScore : sortBy==='avg-asc'?a.avgScore-b.avgScore : sortBy==='pint-desc'?b.pintScore-a.pintScore : sortBy==='pub-asc'?a.pubName.localeCompare(b.pubName) : (b.visitDate||'').localeCompare(a.visitDate||''));
+      main.sort((a,b) => sortBy==='avg-desc'?b.avgScore-a.avgScore : sortBy==='avg-asc'?a.avgScore-b.avgScore : sortBy==='pint-desc'?b.pintScore-a.pintScore : sortBy==='pub-asc'?(a.pubName||'').localeCompare(b.pubName||'') : (b.visitDate||'').localeCompare(a.visitDate||''));
 
       updateStats();
       const container = document.getElementById('dataContainer');
+      if (!container) return;
       if (filtered.length === 0) {
         container.innerHTML = `<div class="text-center py-12 bg-stone-900/40 border border-stone-800 rounded-2xl p-6"><i data-lucide="beer" class="w-10 h-10 text-stone-600 mx-auto mb-3"></i><h3 class="text-base font-semibold text-stone-300">No Guinness Ratings Found</h3></div>`;
         lucide.createIcons(); return;
@@ -424,10 +447,10 @@
       lucide.createIcons();
     }
     function updateStats() {
-      document.getElementById('statTotalPints').innerText = pintEntries.length;
-      document.getElementById('statCountries').innerText = new Set(pintEntries.map(i => i.country).filter(Boolean)).size;
+      if (document.getElementById('statTotalPints')) document.getElementById('statTotalPints').innerText = pintEntries.length;
+      if (document.getElementById('statCountries')) document.getElementById('statCountries').innerText = new Set(pintEntries.map(i => i.country).filter(Boolean)).size;
       let tens = 0; pintEntries.forEach(i => { if (i.pintScore>=10) tens++; if (i.ambienceScore>=10) tens++; if (i.staffScore>=10) tens++; });
-      document.getElementById('stat10s').innerText = tens;
+      if (document.getElementById('stat10s')) document.getElementById('stat10s').innerText = tens;
     }
     function renderTableRow(item, idx, unranked = false) {
       const loc = formatLocation(item), maps = getGoogleMapsUrl(item.pubName, loc);
