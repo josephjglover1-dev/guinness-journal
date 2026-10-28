@@ -62,7 +62,7 @@
         <button onclick="exportBackup()" class="flex-1 sm:flex-initial px-3 py-2 text-xs font-medium bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg border border-stone-700 flex items-center justify-center gap-1.5 transition"><i data-lucide="download" class="w-3.5 h-3.5"></i> Export</button>
         <button onclick="togglePasteModal(true)" class="flex-1 sm:flex-initial px-3 py-2 text-xs font-medium bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg border border-stone-700 flex items-center justify-center gap-1.5 transition"><i data-lucide="clipboard" class="w-3.5 h-3.5"></i> Paste JSON</button>
         <label class="flex-1 sm:flex-initial px-3 py-2 text-xs font-medium bg-accent text-stone-950 font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition shadow-sm hover:opacity-90">
-          <i data-lucide="upload" class="w-3.5 h-3.5"></i> Import <input type="file" accept="*/*" class="hidden" onchange="importBackup(event)" />
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i> Import <input type="file" id="jsonFileInput" accept="*/*" class="hidden" onchange="importBackup(event)" />
         </label>
       </div>
     </div>
@@ -230,13 +230,35 @@
     function getGoogleMapsUrl(pub, loc) { return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pub + ' ' + (loc || ''))}`; }
     function toggleSearchModal(s) { document.getElementById('searchModal').classList.toggle('hidden', !s); lucide.createIcons(); }
     function togglePasteModal(s) { document.getElementById('pasteModal').classList.toggle('hidden', !s); lucide.createIcons(); }
-    function processPastedJson() {
-      try {
-        const data = JSON.parse(document.getElementById('rawJsonTextArea').value.trim());
-        if (Array.isArray(data)) { pintEntries = data; standardizeCountries(); saveToStorage(); togglePasteModal(false); document.getElementById('rawJsonTextArea').value = ''; alert(`Restored ${data.length} entries!`); }
-        else alert('Must be a JSON array starting with [');
-      } catch(e) { alert('Invalid JSON format.'); }
+    
+    function parseAndRestoreArray(parsedData) {
+      if (Array.isArray(parsedData) && parsedData.length > 0) {
+        pintEntries = parsedData;
+        standardizeCountries();
+        saveToStorage();
+        alert(`Success! Loaded ${parsedData.length} pint entries into your journal.`);
+        return true;
+      }
+      return false;
     }
+
+    function processPastedJson() {
+      const rawText = document.getElementById('rawJsonTextArea').value.trim();
+      if (!rawText) return;
+      try {
+        const cleaned = rawText.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
+        const parsed = JSON.parse(cleaned);
+        if (parseAndRestoreArray(parsed)) {
+          togglePasteModal(false);
+          document.getElementById('rawJsonTextArea').value = '';
+        } else {
+          alert('Format error: Pasted data must be a JSON array starting with [ and ending with ].');
+        }
+      } catch(e) {
+        alert('Could not parse JSON. Check that all brackets [ ] and quotes are copied correctly.');
+      }
+    }
+
     function toggleCountryLeaderboard(s) {
       if (s) { expandedCountry = null; renderCountryLeaderboard(); }
       document.getElementById('countryLeaderboardModal').classList.toggle('hidden', !s);
@@ -328,9 +350,9 @@
       const filtered = c ? pintEntries.filter(e => e.country === c) : pintEntries;
       const counties = [...new Set(filtered.map(e => e.county).filter(Boolean))].sort(), cur = sel.value;
       sel.innerHTML = '<option value="">All Counties</option>' + counties.map(x => `<option value="${x}">${x}</option>`).join('');
-      sel.value = counties.includes(cur) ? cur : ''; onFilterCountryChange2();
+      sel.value = counties.includes(cur) ? cur : ''; onFilterCountyChange2();
     }
-    function onFilterCountryChange2() {
+    function onFilterCountyChange2() {
       const c = document.getElementById('filterCountry').value, county = document.getElementById('filterCounty').value, sel = document.getElementById('filterCity');
       let filtered = pintEntries; if (c) filtered = filtered.filter(e => e.country === c); if (county) filtered = filtered.filter(e => e.county === county);
       const cities = [...new Set(filtered.map(e => e.city).filter(Boolean))].sort(), cur = sel.value;
@@ -414,17 +436,30 @@
       document.body.appendChild(a); a.click(); a.remove();
       if (!isAuto) alert('Backup exported!');
     }
+
     function importBackup(e) {
-      const file = e.target.files[0]; if (!file) return;
+      const file = e.target.files[0];
+      if (!file) return;
+
       const reader = new FileReader();
       reader.onload = function(evt) {
         try {
-          const data = JSON.parse(evt.target.result);
-          if (Array.isArray(data)) { pintEntries = data; standardizeCountries(); saveToStorage(); alert(`Successfully imported ${data.length} entries!`); }
-          else alert('Invalid format.');
-        } catch(err) { alert('Error reading file. Use Paste JSON instead!'); }
+          let text = evt.target.result;
+          if (typeof text !== 'string') {
+            text = new TextDecoder("utf-8").decode(text);
+          }
+          text = text.trim().replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
+          const parsed = JSON.parse(text);
+          if (parseAndRestoreArray(parsed)) {
+            document.getElementById('jsonFileInput').value = '';
+          } else {
+            alert('File error: Must be a valid array starting with [ and ending with ].');
+          }
+        } catch(err) {
+          alert('Error parsing file content. Try the Paste JSON button as an alternative.');
+        }
       };
-      reader.readAsText(file);
+      reader.readAsText(file, "UTF-8");
     }
   </script>
 </body>
