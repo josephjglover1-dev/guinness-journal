@@ -242,20 +242,37 @@
       return false;
     }
 
+    // AUTO-REPAIRING JSON PARSER TO HANDLE MINOR SYNTAX/TRAILING COMMA ISSUES
     function processPastedJson() {
       const rawText = document.getElementById('rawJsonTextArea').value.trim();
       if (!rawText) return;
       try {
-        const cleaned = rawText.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
-        const parsed = JSON.parse(cleaned);
+        let cleaned = rawText
+          .replace(/[\u201C\u201D]/g, '"')
+          .replace(/[\u2018\u2019]/g, "'")
+          .replace(/,\s*([}\\]])/g, '$1') // auto-remove trailing commas
+          .replace(/:\s*,/g, ': "",');    // auto-fix empty values like county: ,
+
+        let parsed;
+        try {
+          parsed = JSON.parse(cleaned);
+        } catch (innerErr) {
+          if (!cleaned.startsWith('[')) {
+            cleaned = '[' + cleaned + ']';
+            parsed = JSON.parse(cleaned);
+          } else {
+            throw innerErr;
+          }
+        }
+
         if (parseAndRestoreArray(parsed)) {
           togglePasteModal(false);
           document.getElementById('rawJsonTextArea').value = '';
         } else {
-          alert('Format error: Pasted data must be a JSON array starting with [ and ending with ].');
+          alert('Format error: Data must be a valid JSON array.');
         }
       } catch(e) {
-        alert('Could not parse JSON. Check that all brackets [ ] and quotes are copied correctly.');
+        alert('Could not parse JSON. Check that all brackets [ ] are copied correctly.');
       }
     }
 
@@ -350,9 +367,9 @@
       const filtered = c ? pintEntries.filter(e => e.country === c) : pintEntries;
       const counties = [...new Set(filtered.map(e => e.county).filter(Boolean))].sort(), cur = sel.value;
       sel.innerHTML = '<option value="">All Counties</option>' + counties.map(x => `<option value="${x}">${x}</option>`).join('');
-      sel.value = counties.includes(cur) ? cur : ''; onFilterCountyChange2();
+      sel.value = counties.includes(cur) ? cur : ''; onFilterCountryChange2();
     }
-    function onFilterCountyChange2() {
+    function onFilterCountryChange2() {
       const c = document.getElementById('filterCountry').value, county = document.getElementById('filterCounty').value, sel = document.getElementById('filterCity');
       let filtered = pintEntries; if (c) filtered = filtered.filter(e => e.country === c); if (county) filtered = filtered.filter(e => e.county === county);
       const cities = [...new Set(filtered.map(e => e.city).filter(Boolean))].sort(), cur = sel.value;
@@ -436,30 +453,17 @@
       document.body.appendChild(a); a.click(); a.remove();
       if (!isAuto) alert('Backup exported!');
     }
-
     function importBackup(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
+      const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = function(evt) {
         try {
-          let text = evt.target.result;
-          if (typeof text !== 'string') {
-            text = new TextDecoder("utf-8").decode(text);
-          }
-          text = text.trim().replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
-          const parsed = JSON.parse(text);
-          if (parseAndRestoreArray(parsed)) {
-            document.getElementById('jsonFileInput').value = '';
-          } else {
-            alert('File error: Must be a valid array starting with [ and ending with ].');
-          }
-        } catch(err) {
-          alert('Error parsing file content. Try the Paste JSON button as an alternative.');
-        }
+          const parsed = JSON.parse(evt.target.result.trim());
+          if (parseAndRestoreArray(parsed)) document.getElementById('jsonFileInput').value = '';
+          else alert('File must be a JSON array.');
+        } catch(err) { alert('Error reading file.'); }
       };
-      reader.readAsText(file, "UTF-8");
+      reader.readAsText(file);
     }
   </script>
 </body>
