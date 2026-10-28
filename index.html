@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guinness Pint Journal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { brand: { gold: 'var(--brand-accent)', dark: '#121212', card: '#1C1A17', border: '#2E2A24' } } } }
+    }
+  </script>
+
+  <style>
+    :root {
+      --brand-accent: #D4AF37;
+      --brand-accent-bg: rgba(212, 175, 55, 0.15);
+      --brand-accent-border: rgba(212, 175, 55, 0.3);
+    }
+    body.theme-emerald {
+      --brand-accent: #10B981;
+      --brand-accent-bg: rgba(16, 185, 129, 0.15);
+      --brand-accent-border: rgba(16, 185, 129, 0.3);
+    }
+    body.theme-copper {
+      --brand-accent: #F97316;
+      --brand-accent-bg: rgba(249, 115, 22, 0.15);
+      --brand-accent-border: rgba(249, 115, 22, 0.3);
+    }
+    body { background-color: #0d0d0c; color: #e5e5e5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .text-accent { color: var(--brand-accent); }
+    .bg-accent { background-color: var(--brand-accent); }
+    .bg-accent-soft { background-color: var(--brand-accent-bg); }
+    .border-accent { border-color: var(--brand-accent); }
+    .border-accent-soft { border-color: var(--brand-accent-border); }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #121212; }
+    ::-webkit-scrollbar-thumb { background: #2e2a24; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--brand-accent); }
+  </style>
+</head>
+<body class="min-h-screen pb-12">
+
+  <!-- HEADER -->
+  <header class="bg-stone-900/80 backdrop-blur-md border-b border-stone-800 sticky top-0 z-30 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-accent-soft border border-accent-soft flex items-center justify-center text-accent font-bold text-xl shadow-sm">
+          🍺
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-stone-100">Guinness Pint Journal</h1>
+          <p class="text-xs text-stone-400">Track, Rate & Rank the Black Stuff</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+        <button onclick="cycleTheme()" title="Cycle Theme" class="p-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg border border-stone-700 transition">🎨</button>
+        <button onclick="exportBackup()" class="flex-1 sm:flex-initial px-3 py-2 text-xs font-medium bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg border border-stone-700 flex items-center justify-center gap-1.5 transition"><i data-lucide="download" class="w-3.5 h-3.5"></i> Export</button>
+        <button onclick="togglePasteModal(true)" class="flex-1 sm:flex-initial px-3 py-2 text-xs font-medium bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg border border-stone-700 flex items-center justify-center gap-1.5 transition"><i data-lucide="clipboard" class="w-3.5 h-3.5"></i> Paste JSON</button>
+        <label class="flex-1 sm:flex-initial px-3 py-2 text-xs font-medium bg-accent text-stone-950 font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition shadow-sm hover:opacity-90">
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i> Import <input type="file" accept="*/*" class="hidden" onchange="importBackup(event)" />
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
+    <!-- STATS -->
+    <div class="grid grid-cols-3 gap-2.5">
+      <div class="bg-stone-900/60 border border-stone-800 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
+        <div class="p-2 rounded-lg bg-stone-800 text-accent"><i data-lucide="glass-water" class="w-4 h-4"></i></div>
+        <div><div class="text-[10px] text-stone-400 uppercase">Total Logged</div><div id="statTotalPints" class="text-base font-bold text-stone-100">0</div></div>
+      </div>
+      <div onclick="toggleCountryLeaderboard(true)" class="bg-stone-900/60 border border-stone-800 hover:border-accent-soft rounded-xl px-3 py-2.5 flex items-center gap-2.5 cursor-pointer transition group shadow-sm">
+        <div class="p-2 rounded-lg bg-stone-800 text-accent group-hover:scale-110 transition-transform"><i data-lucide="globe" class="w-4 h-4"></i></div>
+        <div><div class="text-[10px] text-stone-400 uppercase flex items-center gap-1">Countries Drank <i data-lucide="bar-chart-2" class="w-3 h-3 text-accent"></i></div><div id="statCountries" class="text-base font-bold text-accent">0</div></div>
+      </div>
+      <div class="bg-stone-900/60 border border-stone-800 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
+        <div class="p-2 rounded-lg bg-stone-800 text-accent"><i data-lucide="crown" class="w-4 h-4"></i></div>
+        <div><div class="text-[10px] text-stone-400 uppercase">10/10 Perfect</div><div id="stat10s" class="text-base font-bold text-stone-100">0</div></div>
+      </div>
+    </div>
+
+    <!-- ACTION BAR -->
+    <div class="grid grid-cols-2 gap-2.5">
+      <button onclick="toggleForm()" class="bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-accent-soft rounded-xl py-3 px-4 flex items-center justify-center gap-2 text-stone-100 font-semibold text-xs sm:text-sm transition shadow-md group">
+        <i data-lucide="plus-circle" class="w-4 h-4 text-accent group-hover:scale-110 transition-transform"></i> Add New Pint
+      </button>
+      <button onclick="toggleSearchModal(true)" class="bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-accent-soft rounded-xl py-3 px-4 flex items-center justify-center gap-2 text-stone-100 font-semibold text-xs sm:text-sm transition shadow-md group">
+        <i data-lucide="search" class="w-4 h-4 text-accent group-hover:scale-110 transition-transform"></i> Search & Filters <span id="filterActiveBadge" class="hidden w-2 h-2 rounded-full bg-accent"></span>
+      </button>
+    </div>
+
+    <!-- ENTRY FORM -->
+    <div id="formContainerWrapper" class="bg-stone-900/90 border border-stone-800 rounded-2xl p-4 sm:p-5 shadow-xl hidden">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-800 mb-4">
+        <h2 id="formTitleText" class="text-base font-semibold text-stone-100 flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-accent"></i> Add New Pint Rating</h2>
+        <button onclick="resetAndHideForm()" class="text-stone-400 hover:text-stone-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="ratingForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+        <input type="hidden" id="editEntryId" value="" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <div><label class="block text-xs font-medium text-stone-400 mb-1">Pub Name *</label><input type="text" id="pubName" required list="pubSuggestions" class="w-full bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-accent" placeholder="e.g. The Grapes" /><datalist id="pubSuggestions"></datalist></div>
+          <div><label class="block text-xs font-medium text-stone-400 mb-1">Country</label><input type="text" id="country" list="countrySuggestions" class="w-full bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-accent" placeholder="e.g. England" /><datalist id="countrySuggestions"></datalist></div>
+          <div><label class="block text-xs font-medium text-stone-400 mb-1">City / Town</label><input type="text" id="city" list="citySuggestions" class="w-full bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-accent" placeholder="e.g. Stamford" /><datalist id="citySuggestions"></datalist></div>
+          <div><label class="block text-xs font-medium text-stone-400 mb-1">County</label><input type="text" id="county" list="countySuggestions" class="w-full bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-accent" placeholder="e.g. Lincolnshire" /><datalist id="countySuggestions"></datalist></div>
+          <div><label class="block text-xs font-medium text-stone-400 mb-1">Area / Neighborhood</label><input type="text" id="area" list="areaSuggestions" class="w-full bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-accent" placeholder="e.g. Centre" /><datalist id="areaSuggestions"></datalist></div>
+          <div><label class="block text-xs font-medium text-stone-400 mb-1">Visit Date</label><div class="flex gap-1.5"><input type="date" id="visitDate" class="w-full bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-accent" /><button type="button" onclick="setFormDate('today')" class="px-2 py-1 text-xs bg-stone-800 text-stone-300 rounded border border-stone-700">Today</button></div></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-stone-800">
+          <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-stone-300">Pint Quality (0-10)</label><span id="pintVal" class="text-xs font-bold text-accent">8.0</span></div><input type="range" id="pintScore" min="0" max="10" step="0.5" value="8" oninput="document.getElementById('pintVal').innerText=parseFloat(this.value).toFixed(1)" class="w-full accent-amber-500" /></div>
+          <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-stone-300">Ambience (1-10)</label><span id="ambVal" class="text-xs font-bold text-accent">8.0</span></div><input type="range" id="ambienceScore" min="1" max="10" step="0.5" value="8" oninput="document.getElementById('ambVal').innerText=parseFloat(this.value).toFixed(1)" class="w-full accent-amber-500" /></div>
+          <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-stone-300">Staff (1-10)</label><span id="staffVal" class="text-xs font-bold text-accent">8.0</span></div><input type="range" id="staffScore" min="1" max="10" step="0.5" value="8" oninput="document.getElementById('staffVal').innerText=parseFloat(this.value).toFixed(1)" class="w-full accent-amber-500" /></div>
+        </div>
+        <div><label class="block text-xs font-medium text-stone-400 mb-1">Notes / Thoughts (Type 'No Guinness' if unavailable)</label><input type="text" id="notes" class="w-full bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-accent" placeholder="Great dome, proper temperature..." /></div>
+        <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="resetAndHideForm()" class="px-4 py-2 text-xs text-stone-400">Cancel</button><button type="submit" id="formSubmitBtn" class="px-5 py-2 text-xs font-semibold bg-accent text-stone-950 rounded-lg shadow-md">Save Pint Entry</button></div>
+      </form>
+    </div>
+
+    <!-- PASTE JSON MODAL -->
+    <div id="pasteModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-stone-900 border border-stone-800 rounded-2xl w-full max-w-lg p-5 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between pb-3 border-b border-stone-800"><h3 class="text-base font-semibold text-stone-100 flex items-center gap-2"><i data-lucide="clipboard" class="w-4 h-4 text-accent"></i> Paste Backup JSON</h3><button onclick="togglePasteModal(false)" class="text-stone-400"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+        <textarea id="rawJsonTextArea" rows="8" class="w-full bg-stone-950 border border-stone-800 rounded-lg p-3 text-xs text-stone-200 font-mono" placeholder="Paste your [ {...} ] JSON here..."></textarea>
+        <div class="flex justify-end gap-2 pt-2 border-t border-stone-800"><button onclick="togglePasteModal(false)" class="px-4 py-2 text-xs text-stone-400">Cancel</button><button onclick="processPastedJson()" class="px-5 py-2 text-xs font-semibold bg-accent text-stone-950 rounded-lg">Restore Data</button></div>
+      </div>
+    </div>
+
+    <!-- COUNTRY LEADERBOARD MODAL -->
+    <div id="countryLeaderboardModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-stone-900 border border-stone-800 rounded-2xl w-full max-w-lg p-5 space-y-4 shadow-2xl flex flex-col max-h-[85vh]">
+        <div class="flex items-center justify-between pb-3 border-b border-stone-800 shrink-0"><h3 class="text-base font-semibold text-stone-100 flex items-center gap-2"><i data-lucide="globe" class="w-4 h-4 text-accent"></i> Countries Drank Leaderboard</h3><button onclick="toggleCountryLeaderboard(false)" class="text-stone-400"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+        <div class="text-[11px] text-stone-400 italic shrink-0">Click any country to expand its county/city breakdown</div>
+        <div id="countryLeaderboardContent" class="space-y-2.5 overflow-y-auto pr-1 flex-1"></div>
+        <div class="flex justify-end pt-3 border-t border-stone-800 shrink-0"><button onclick="toggleCountryLeaderboard(false)" class="px-4 py-2 text-xs bg-stone-800 text-stone-200 rounded-lg">Close</button></div>
+      </div>
+    </div>
+
+    <!-- SEARCH & FILTERS MODAL -->
+    <div id="searchModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-stone-900 border border-stone-800 rounded-2xl w-full max-w-lg p-5 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between pb-3 border-b border-stone-800"><h3 class="text-base font-semibold text-stone-100 flex items-center gap-2"><i data-lucide="search" class="w-4 h-4 text-accent"></i> Search & Filters</h3><button onclick="toggleSearchModal(false)" class="text-stone-400"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+        <div class="space-y-3">
+          <div class="relative"><i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-stone-500"></i><input type="text" id="filterSearch" oninput="renderApp()" placeholder="Search pubs, cities, notes..." class="w-full bg-stone-950 border border-stone-800 rounded-lg pl-9 pr-3 py-2.5 text-xs text-stone-200 focus:outline-none focus:border-accent" /></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <select id="filterCountry" onchange="onFilterCountryChange()" class="bg-stone-950 border border-stone-800 rounded-lg px-3 py-2.5 text-xs text-stone-300"><option value="">All Countries</option></select>
+            <select id="filterCounty" onchange="onFilterCountyChange()" class="bg-stone-950 border border-stone-800 rounded-lg px-3 py-2.5 text-xs text-stone-300"><option value="">All Counties</option></select>
+            <select id="filterCity" onchange="onFilterCityChange()" class="bg-stone-950 border border-stone-800 rounded-lg px-3 py-2.5 text-xs text-stone-300"><option value="">All Cities/Towns</option></select>
+            <select id="filterArea" onchange="renderApp()" class="bg-stone-950 border border-stone-800 rounded-lg px-3 py-2.5 text-xs text-stone-300"><option value="">All Areas</option></select>
+          </div>
+          <div class="pt-2 border-t border-stone-800 flex items-center justify-between"><span class="text-xs text-stone-400">Sorting by:</span><select id="sortBy" onchange="renderApp()" class="bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-xs text-accent font-medium"><option value="avg-desc">Overall Average (Highest first)</option><option value="avg-asc">Overall Average (Lowest first)</option><option value="pint-desc">Pint Quality (Highest first)</option><option value="pub-asc">Pub Name (A - Z)</option><option value="date-desc">Visit Date (Newest first)</option></select></div>
+        </div>
+        <div class="flex items-center justify-between pt-3 border-t border-stone-800"><button onclick="resetFilters()" class="text-xs text-stone-400 px-3 py-2 rounded-lg border border-stone-800">Reset</button><button onclick="toggleSearchModal(false)" class="px-5 py-2 text-xs font-semibold bg-accent text-stone-950 rounded-lg">Apply & Close</button></div>
+      </div>
+    </div>
+
+    <!-- VIEW TOGGLE -->
+    <div class="flex items-center justify-between pb-2 border-b border-stone-800/60">
+      <div id="activeFilterSummary" class="text-xs text-accent font-medium">Showing all entries</div>
+      <div class="flex bg-stone-900 p-1 rounded-xl border border-stone-800">
+        <button id="btnTableView" onclick="setView('table')" class="px-3 py-1.5 text-xs font-medium rounded-lg text-accent bg-stone-800 flex items-center gap-1.5"><i data-lucide="table" class="w-3.5 h-3.5"></i> Table</button>
+        <button id="btnCardView" onclick="setView('card')" class="px-3 py-1.5 text-xs font-medium rounded-lg text-stone-400 hover:text-stone-200 flex items-center gap-1.5"><i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Cards</button>
+      </div>
+    </div>
+
+    <!-- DATA CONTAINER -->
+    <div id="dataContainer"></div>
+  </main>
+
+  <script>
+    const ukCountyMap = {
+      "stamford": "Lincolnshire", "sheringham": "Norfolk", "cromer": "Norfolk", "norwich": "Norfolk",
+      "kings lynn": "Norfolk", "king's lynn": "Norfolk", "lincoln": "Lincolnshire", "spalding": "Lincolnshire",
+      "sleaford": "Lincolnshire", "skegness": "Lincolnshire", "tattershall": "Lincolnshire", "bakewell": "Derbyshire",
+      "tideswell": "Derbyshire", "buxton": "Derbyshire", "eyam": "Derbyshire", "bolsover": "Derbyshire",
+      "chesterfield": "Derbyshire", "winster": "Derbyshire", "monyash": "Derbyshire", "ashford in the water": "Derbyshire",
+      "leeds": "West Yorkshire", "whitby": "North Yorkshire", "reeth": "North Yorkshire", "richmond": "North Yorkshire",
+      "bedale": "North Yorkshire", "middlesbrough": "North Yorkshire", "filey": "North Yorkshire", "colne": "Lancashire",
+      "manchester": "Greater Manchester", "macclesfield": "Cheshire", "bawtry": "South Yorkshire", "worksop": "Nottinghamshire",
+      "nottingham": "Nottinghamshire", "edwinstowe": "Nottinghamshire", "cuckney": "Nottinghamshire", "newark": "Nottinghamshire",
+      "luton": "Bedfordshire", "birmingham": "West Midlands", "bristol": "Bristol", "plymouth": "Devon",
+      "southampton": "Hampshire", "bournemouth": "Dorset", "ambleside": "Cumbria", "ely": "Cambridgeshire",
+      "felixstowe": "Suffolk", "lowestoft": "Suffolk"
+    };
+    const scotlandLocs = ['glasgow', 'balloch', 'edinburgh', 'aberdeen', 'dundee', 'inverness', 'stirling', 'perth'];
+
+    let pintEntries = [], currentView = 'table', currentTheme = 'gold', expandedCountry = null;
+
+    window.addEventListener('DOMContentLoaded', () => { loadFromStorage(); standardizeCountries(); populateFormSuggestions(); initFilters(); renderApp(); lucide.createIcons(); });
+
+    function isNoGuinness(item) {
+      const notes = (item.notes || '').toLowerCase(), name = (item.pubName || '').toLowerCase();
+      return notes.includes('no guinness') || name.includes('no guinness') || item.pintScore === 0;
+    }
+    function loadFromStorage() {
+      const saved = localStorage.getItem('guinness_pints');
+      if (saved) { try { pintEntries = JSON.parse(saved); } catch(e) { pintEntries = []; } }
+      const theme = localStorage.getItem('guinness_theme');
+      if (theme) { currentTheme = theme; applyTheme(theme); }
+    }
+    function saveToStorage() {
+      localStorage.setItem('guinness_pints', JSON.stringify(pintEntries));
+      localStorage.setItem('guinness_theme', currentTheme);
+      populateFormSuggestions(); initFilters(); renderApp();
+    }
+    function cycleTheme() {
+      currentTheme = currentTheme === 'gold' ? 'emerald' : currentTheme === 'emerald' ? 'copper' : 'gold';
+      applyTheme(currentTheme); localStorage.setItem('guinness_theme', currentTheme);
+    }
+    function applyTheme(t) {
+      document.body.classList.remove('theme-emerald', 'theme-copper');
+      if (t !== 'gold') document.body.classList.add(`theme-${t}`);
+    }
+    function standardizeCountries() {
+      let updated = false;
+      pintEntries.forEach(e => {
+        const c = (e.country || '').trim().toLowerCase(), city = (e.city || '').trim().toLowerCase(), area = (e.area || '').trim().toLowerCase(), notes = (e.notes || '').trim().toLowerCase();
+        if (scotlandLocs.some(l => city.includes(l) || area.includes(l) || notes.includes('scotland'))) {
+          if (e.country !== 'Scotland') { e.country = 'Scotland'; updated = true; }
+        } else if (c === 'uk' || c === 'england' || !c) {
+          if (e.country !== 'England') { e.country = 'England'; updated = true; }
+        }
+      });
+      if (updated) localStorage.setItem('guinness_pints', JSON.stringify(pintEntries));
+    }
+    function getGoogleMapsUrl(pub, loc) { return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pub + ' ' + (loc || ''))}`; }
+    function toggleSearchModal(s) { document.getElementById('searchModal').classList.toggle('hidden', !s); lucide.createIcons(); }
+    function togglePasteModal(s) { document.getElementById('pasteModal').classList.toggle('hidden', !s); lucide.createIcons(); }
+    function processPastedJson() {
+      try {
+        const data = JSON.parse(document.getElementById('rawJsonTextArea').value.trim());
+        if (Array.isArray(data)) { pintEntries = data; standardizeCountries(); saveToStorage(); togglePasteModal(false); document.getElementById('rawJsonTextArea').value = ''; alert(`Restored ${data.length} entries!`); }
+        else alert('Must be a JSON array starting with [');
+      } catch(e) { alert('Invalid JSON format.'); }
+    }
+    function toggleCountryLeaderboard(s) {
+      if (s) { expandedCountry = null; renderCountryLeaderboard(); }
+      document.getElementById('countryLeaderboardModal').classList.toggle('hidden', !s);
+      lucide.createIcons();
+    }
+    function toggleCountryExpand(c) { expandedCountry = expandedCountry === c ? null : c; renderCountryLeaderboard(); }
+    function renderCountryLeaderboard() {
+      const tally = {}; pintEntries.forEach(e => { const c = e.country || 'Unknown'; tally[c] = (tally[c] || 0) + 1; });
+      const sorted = Object.entries(tally).sort((a,b) => b[1] - a[1]), total = pintEntries.length || 1;
+      document.getElementById('countryLeaderboardContent').innerHTML = sorted.map(([c, count]) => {
+        const pct = Math.round((count / total) * 100), exp = expandedCountry === c;
+        let sub = '';
+        if (exp) {
+          const subTally = {}; pintEntries.filter(e => (e.country || 'Unknown') === c).forEach(e => { const loc = e.county || e.city || 'Other'; subTally[loc] = (subTally[loc] || 0) + 1; });
+          sub = `<div class="mt-2 pt-2 border-t border-stone-800 space-y-1 pl-2"><div class="text-[10px] font-semibold text-stone-400 uppercase">County / City Breakdown:</div>${Object.entries(subTally).sort((a,b)=>b[1]-a[1]).map(([l, sc]) => `<div class="flex justify-between items-center text-[11px] text-stone-300 py-0.5"><span class="truncate pr-2">• ${l}</span><span class="text-accent">${sc} pubs</span></div>`).join('')}</div>`;
+        }
+        return `<div class="bg-stone-950 p-3 rounded-xl border ${exp ? 'border-accent-soft' : 'border-stone-800/80'} cursor-pointer space-y-1.5" onclick="toggleCountryExpand('${c}')"><div class="flex justify-between items-center text-xs"><span class="font-bold text-stone-200 flex items-center gap-1.5">${c} <i data-lucide="${exp?'chevron-up':'chevron-down'}" class="w-3.5 h-3.5 text-stone-400"></i></span><span class="text-accent font-semibold">${count} pubs (${pct}%)</span></div><div class="w-full h-2 bg-stone-800 rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width: ${pct}%"></div></div>${sub}</div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+    function formatLocation(item) {
+      let area = (item.area || '').trim(), city = (item.city || '').trim(), county = (item.county || '').trim(), country = (item.country || '').trim();
+      if ((!country || country.toLowerCase() === 'england' || country.toLowerCase() === 'uk') && city && !county && ukCountyMap[city.toLowerCase()]) county = ukCountyMap[city.toLowerCase()];
+      if (country.toLowerCase() === 'ireland' && county && !county.toLowerCase().startsWith('county')) county = `County ${county}`;
+      return [area, city, county, country].filter(Boolean).join(' • ');
+    }
+    function toggleForm() {
+      const w = document.getElementById('formContainerWrapper'); w.classList.toggle('hidden');
+      if (!w.classList.contains('hidden')) window.scrollTo({ top: 0, behavior: 'smooth' }); else resetFormState();
+      lucide.createIcons();
+    }
+    function resetFormState() {
+      document.getElementById('ratingForm').reset(); document.getElementById('editEntryId').value = '';
+      document.getElementById('pintVal').innerText = '8.0'; document.getElementById('ambVal').innerText = '8.0'; document.getElementById('staffVal').innerText = '8.0';
+      document.getElementById('formTitleText').innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4 text-accent"></i> Add New Pint Rating`;
+      document.getElementById('formSubmitBtn').innerText = 'Save Pint Entry'; lucide.createIcons();
+    }
+    function resetAndHideForm() { resetFormState(); document.getElementById('formContainerWrapper').classList.add('hidden'); }
+    function editEntry(id) {
+      const e = pintEntries.find(x => x.id === id); if (!e) return;
+      document.getElementById('editEntryId').value = e.id; document.getElementById('pubName').value = e.pubName || '';
+      document.getElementById('country').value = e.country || ''; document.getElementById('city').value = e.city || '';
+      document.getElementById('county').value = (e.county || '').replace(/^county /i, ''); document.getElementById('area').value = e.area || '';
+      document.getElementById('visitDate').value = e.visitDate || '';
+      document.getElementById('pintScore').value = e.pintScore ?? 8; document.getElementById('pintVal').innerText = (e.pintScore ?? 8).toFixed(1);
+      document.getElementById('ambienceScore').value = e.ambienceScore ?? 8; document.getElementById('ambVal').innerText = (e.ambienceScore ?? 8).toFixed(1);
+      document.getElementById('staffScore').value = e.staffScore ?? 8; document.getElementById('staffVal').innerText = (e.staffScore ?? 8).toFixed(1);
+      document.getElementById('notes').value = e.notes || '';
+      document.getElementById('formTitleText').innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 text-accent"></i> Edit: ${e.pubName}`;
+      document.getElementById('formSubmitBtn').innerText = 'Update Entry';
+      document.getElementById('formContainerWrapper').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); lucide.createIcons();
+    }
+    function setFormDate(t) { if (t === 'today') document.getElementById('visitDate').value = new Date().toISOString().split('T')[0]; }
+    function handleFormSubmit(e) {
+      e.preventDefault(); const pubName = document.getElementById('pubName').value.trim(); if (!pubName) return;
+      const editId = document.getElementById('editEntryId').value;
+      let country = document.getElementById('country').value.trim(), city = document.getElementById('city').value.trim(), county = document.getElementById('county').value.trim(), area = document.getElementById('area').value.trim();
+      const visitDate = document.getElementById('visitDate').value, pintScore = parseFloat(document.getElementById('pintScore').value), ambienceScore = parseFloat(document.getElementById('ambienceScore').value), staffScore = parseFloat(document.getElementById('staffScore').value), notes = document.getElementById('notes').value.trim();
+      
+      if (scotlandLocs.some(l => city.toLowerCase().includes(l) || notes.toLowerCase().includes('scotland'))) country = 'Scotland';
+      else if (!country || country.toLowerCase() === 'uk' || country.toLowerCase() === 'england') country = 'England';
+      if (country.toLowerCase() === 'england' && city && !county && ukCountyMap[city.toLowerCase()]) county = ukCountyMap[city.toLowerCase()];
+      if (country.toLowerCase() === 'ireland' && county && !county.toLowerCase().startsWith('county')) county = `County ${county}`;
+
+      const avgScore = pintScore === 0 ? 0 : parseFloat(((pintScore + ambienceScore + staffScore) / 3).toFixed(2));
+      if (editId) {
+        const idx = pintEntries.findIndex(x => x.id === editId);
+        if (idx !== -1) pintEntries[idx] = { ...pintEntries[idx], pubName, country, city, county, area, visitDate, pintScore, ambienceScore, staffScore, avgScore, notes };
+      } else {
+        pintEntries.unshift({ id: 'pint_' + Date.now(), pubName, country, city, county, area, visitDate, pintScore, ambienceScore, staffScore, avgScore, notes });
+      }
+      saveToStorage(); resetAndHideForm(); exportBackup(true);
+    }
+    function populateFormSuggestions() {
+      const getUnique = (k) => [...new Set(pintEntries.map(e => e[k]).filter(Boolean))].sort();
+      ['pubSuggestions','countrySuggestions','citySuggestions','countySuggestions','areaSuggestions'].forEach((id, idx) => {
+        const keys = ['pubName', 'country', 'city', 'county', 'area'];
+        const dl = document.getElementById(id); if (dl) dl.innerHTML = getUnique(keys[idx]).map(v => `<option value="${v}">`).join('');
+      });
+    }
+    function initFilters() {
+      const countries = [...new Set(pintEntries.map(e => e.country).filter(Boolean))].sort();
+      const sel = document.getElementById('filterCountry'), cur = sel.value;
+      sel.innerHTML = '<option value="">All Countries</option>' + countries.map(c => `<option value="${c}">${c}</option>`).join('');
+      sel.value = countries.includes(cur) ? cur : ''; onFilterCountryChange();
+    }
+    function onFilterCountryChange() {
+      const c = document.getElementById('filterCountry').value, sel = document.getElementById('filterCounty');
+      const filtered = c ? pintEntries.filter(e => e.country === c) : pintEntries;
+      const counties = [...new Set(filtered.map(e => e.county).filter(Boolean))].sort(), cur = sel.value;
+      sel.innerHTML = '<option value="">All Counties</option>' + counties.map(x => `<option value="${x}">${x}</option>`).join('');
+      sel.value = counties.includes(cur) ? cur : ''; onFilterCountryChange2();
+    }
+    function onFilterCountryChange2() {
+      const c = document.getElementById('filterCountry').value, county = document.getElementById('filterCounty').value, sel = document.getElementById('filterCity');
+      let filtered = pintEntries; if (c) filtered = filtered.filter(e => e.country === c); if (county) filtered = filtered.filter(e => e.county === county);
+      const cities = [...new Set(filtered.map(e => e.city).filter(Boolean))].sort(), cur = sel.value;
+      sel.innerHTML = '<option value="">All Cities/Towns</option>' + cities.map(x => `<option value="${x}">${x}</option>`).join('');
+      sel.value = cities.includes(cur) ? cur : ''; onFilterCityChange();
+    }
+    function onFilterCityChange() {
+      const c = document.getElementById('filterCountry').value, county = document.getElementById('filterCounty').value, city = document.getElementById('filterCity').value, sel = document.getElementById('filterArea');
+      let filtered = pintEntries; if (c) filtered = filtered.filter(e => e.country === c); if (county) filtered = filtered.filter(e => e.county === county); if (city) filtered = filtered.filter(e => e.city === city);
+      const areas = [...new Set(filtered.map(e => e.area).filter(Boolean))].sort(), cur = sel.value;
+      sel.innerHTML = '<option value="">All Areas</option>' + areas.map(x => `<option value="${x}">${x}</option>`).join('');
+      sel.value = areas.includes(cur) ? cur : ''; renderApp();
+    }
+    function resetFilters() { ['filterSearch','filterCountry','filterCounty','filterCity','filterArea'].forEach(id => document.getElementById(id).value = ''); initFilters(); }
+    function setView(v) {
+      currentView = v;
+      document.getElementById('btnTableView').className = `px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 ${v==='table'?'text-accent bg-stone-800':'text-stone-400'}`;
+      document.getElementById('btnCardView').className = `px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 ${v==='card'?'text-accent bg-stone-800':'text-stone-400'}`;
+      renderApp();
+    }
+    function getScoreBadge(score, isPintCol = false) {
+      if (isPintCol && (score === 0 || score === null)) return `<span class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-950/60 border border-red-800/60 text-red-400 text-xs font-bold" title="No Guinness">❌</span>`;
+      const num = parseFloat(score) || 0;
+      if (num >= 10.0) return `<span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-[11px] sm:text-xs font-black border border-accent bg-accent-soft text-accent shadow-sm">10.0</span>`;
+      return `<span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-[11px] sm:text-xs font-semibold bg-stone-800/80 text-stone-300 border border-stone-700/50">${num.toFixed(1)}</span>`;
+    }
+    function getAvgBadge(score, noG = false) {
+      if (noG) return `<span class="inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-bold bg-red-950/50 text-red-400 border border-red-900/50">NO GUINNESS</span>`;
+      return `<span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-accent-soft text-accent border border-accent-soft shadow-sm">${(parseFloat(score)||0).toFixed(2)}</span>`;
+    }
+    function renderApp() {
+      const search = document.getElementById('filterSearch').value.toLowerCase(), country = document.getElementById('filterCountry').value, county = document.getElementById('filterCounty').value, city = document.getElementById('filterCity').value, area = document.getElementById('filterArea').value, sortBy = document.getElementById('sortBy').value;
+      const hasFilters = search || country || county || city || area;
+      document.getElementById('filterActiveBadge').classList.toggle('hidden', !hasFilters);
+      document.getElementById('activeFilterSummary').innerText = hasFilters ? `Filtered view` : `Showing all ${pintEntries.length} entries`;
+
+      let filtered = pintEntries.filter(i => {
+        const sMatch = !search || i.pubName.toLowerCase().includes(search) || (i.city && i.city.toLowerCase().includes(search)) || (i.notes && i.notes.toLowerCase().includes(search));
+        return sMatch && (!country || i.country === country) && (!county || i.county === county) && (!city || i.city === city) && (!area || i.area === area);
+      });
+
+      let main = filtered.filter(i => !isNoGuinness(i)), unranked = filtered.filter(i => isNoGuinness(i));
+      main.sort((a,b) => sortBy==='avg-desc'?b.avgScore-a.avgScore : sortBy==='avg-asc'?a.avgScore-b.avgScore : sortBy==='pint-desc'?b.pintScore-a.pintScore : sortBy==='pub-asc'?a.pubName.localeCompare(b.pubName) : (b.visitDate||'').localeCompare(a.visitDate||''));
+
+      updateStats();
+      const container = document.getElementById('dataContainer');
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 bg-stone-900/40 border border-stone-800 rounded-2xl p-6"><i data-lucide="beer" class="w-10 h-10 text-stone-600 mx-auto mb-3"></i><h3 class="text-base font-semibold text-stone-300">No Guinness Ratings Found</h3></div>`;
+        lucide.createIcons(); return;
+      }
+      if (currentView === 'table') renderTableView(container, main, unranked); else renderCardView(container, main, unranked);
+      lucide.createIcons();
+    }
+    function updateStats() {
+      document.getElementById('statTotalPints').innerText = pintEntries.length;
+      document.getElementById('statCountries').innerText = new Set(pintEntries.map(i => i.country).filter(Boolean)).size;
+      let tens = 0; pintEntries.forEach(i => { if (i.pintScore>=10) tens++; if (i.ambienceScore>=10) tens++; if (i.staffScore>=10) tens++; });
+      document.getElementById('stat10s').innerText = tens;
+    }
+    function renderTableRow(item, idx, unranked = false) {
+      const loc = formatLocation(item), maps = getGoogleMapsUrl(item.pubName, loc);
+      let rank = unranked ? `<span class="text-xs text-stone-600">—</span>` : (idx===0 && !hasActiveFilters()? `<span class="text-xs font-black text-accent bg-accent-soft px-1.5 py-0.5 rounded border border-accent-soft">🥇 #1</span>` : idx===1 && !hasActiveFilters()? `<span class="text-xs font-black text-stone-300 bg-stone-300/10 px-1.5 py-0.5 rounded border border-stone-300/30">🥈 #2</span>` : idx===2 && !hasActiveFilters()? `<span class="text-xs font-black text-amber-600 bg-amber-600/10 px-1.5 py-0.5 rounded border border-amber-600/30">🥉 #3</span>` : `<span class="text-xs font-bold text-stone-500">#${idx+1}</span>`);
+      return `<tr class="border-b border-stone-800/60 hover:bg-stone-800/30 transition group"><td class="py-2.5 px-2 text-xs">${rank}</td><td class="py-2.5 px-2"><div class="font-bold text-xs sm:text-sm text-stone-100"><a href="${maps}" target="_blank" class="hover:text-accent hover:underline">${item.pubName}</a></div><div class="text-[10px] text-stone-400 flex items-center gap-1 mt-0.5 truncate max-w-[180px] sm:max-w-none"><i data-lucide="map-pin" class="w-3 h-3 text-accent shrink-0"></i><span class="truncate">${loc||'Unknown'}</span></div></td><td class="py-2.5 px-1.5 text-center">${getScoreBadge(item.pintScore, unranked)}</td><td class="py-2.5 px-1.5 text-center">${getScoreBadge(item.ambienceScore)}</td><td class="py-2.5 px-1.5 text-center">${getScoreBadge(item.staffScore)}</td><td class="py-2.5 px-2 text-center">${getAvgBadge(item.avgScore, unranked)}</td><td class="py-2.5 px-2 text-right"><div class="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100"><button onclick="editEntry('${item.id}')" class="p-1 text-stone-400 hover:text-accent"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button><button onclick="deleteEntry('${item.id}')" class="p-1 text-stone-500 hover:text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div></td></tr>`;
+    }
+    function renderTableView(container, main, unranked) {
+      container.innerHTML = `<div class="bg-stone-900/80 border border-stone-800 rounded-2xl overflow-hidden shadow-xl"><div class="overflow-x-auto"><table class="w-full text-left border-collapse min-w-[650px]"><thead><tr class="bg-stone-950/80 border-b border-stone-800 text-[10px] font-semibold text-stone-400 uppercase"><th class="py-2.5 px-2">Rank</th><th class="py-2.5 px-2">Pub & Location</th><th class="py-2.5 px-1.5 text-center">Pint</th><th class="py-2.5 px-1.5 text-center">Ambience</th><th class="py-2.5 px-1.5 text-center">Staff</th><th class="py-2.5 px-2 text-center">Overall</th><th class="py-2.5 px-2 text-right">Action</th></tr></thead><tbody class="divide-y divide-stone-800/40">${main.map((i,idx)=>renderTableRow(i,idx,false)).join('')}</tbody></table></div></div>${unranked.length>0?`<div class="mt-8 bg-stone-900/60 border border-red-950/80 rounded-2xl overflow-hidden shadow-xl"><div class="bg-red-950/40 border-b border-red-900/40 px-4 py-2.5"><h3 class="text-xs font-bold text-red-300 uppercase">🚫 No Guinness Available (${unranked.length} Pubs)</h3></div><div class="overflow-x-auto"><table class="w-full text-left border-collapse min-w-[650px]"><tbody class="divide-y divide-stone-800/40">${unranked.map(i=>renderTableRow(i,0,true)).join('')}</tbody></table></div></div>`:''}`;
+    }
+    function renderCard(item, idx, unranked = false) {
+      const loc = formatLocation(item), maps = getGoogleMapsUrl(item.pubName, loc);
+      return `<div class="bg-stone-900/80 border ${unranked?'border-red-950/60':'border-stone-800'} rounded-2xl p-4 flex flex-col justify-between shadow-lg relative group"><div><div class="flex items-start justify-between gap-2 mb-2"><div><span class="text-[10px] font-bold ${unranked?'text-red-400':'text-stone-500'}">${unranked?'NO GUINNESS':'RANK #'+(idx+1)}</span><h3 class="font-bold text-base text-stone-100"><a href="${maps}" target="_blank" class="hover:text-accent hover:underline">${item.pubName}</a></h3><div class="text-xs text-stone-400 flex items-center gap-1 mt-0.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-accent"></i> ${loc||'Unknown'}</div></div><div>${getAvgBadge(item.avgScore, unranked)}</div></div><div class="grid grid-cols-3 gap-2 my-3 p-2.5 rounded-xl bg-stone-950/60 border border-stone-800/60 text-center"><div><div class="text-[10px] text-stone-500 mb-1">Pint</div>${getScoreBadge(item.pintScore, unranked)}</div><div><div class="text-[10px] text-stone-500 mb-1">Ambience</div>${getScoreBadge(item.ambienceScore)}</div><div><div class="text-[10px] text-stone-500 mb-1">Staff</div>${getScoreBadge(item.staffScore)}</div></div>${item.notes?`<p class="text-xs text-stone-400 italic bg-stone-950/30 p-2 rounded-lg">"${item.notes}"</p>`:''}</div><div class="flex items-center justify-between mt-3 pt-2 border-t border-stone-800/50 text-[11px] text-stone-500"><span>${item.visitDate?'Visited: '+item.visitDate:''}</span><div class="flex items-center gap-2"><button onclick="editEntry('${item.id}')" class="text-stone-400 hover:text-accent flex items-center gap-1"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit</button><button onclick="deleteEntry('${item.id}')" class="text-stone-500 hover:text-red-400 flex items-center gap-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</button></div></div></div>`;
+    }
+    function renderCardView(container, main, unranked) {
+      container.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${main.map((i,idx)=>renderCard(i,idx,false)).join('')}</div>${unranked.length>0?`<div class="mt-8 space-y-3"><div class="border-b border-red-950/80 pb-2"><h3 class="text-xs font-bold text-red-300 uppercase">🚫 No Guinness Available (${unranked.length} Pubs)</h3></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${unranked.map(i=>renderCard(i,0,true)).join('')}</div></div>`:''}`;
+    }
+    function deleteEntry(id) { if (confirm('Delete this entry?')) { pintEntries = pintEntries.filter(e => e.id !== id); saveToStorage(); } }
+    function exportBackup(isAuto = false) {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pintEntries, null, 2));
+      const a = document.createElement('a'); a.setAttribute("href", dataStr);
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').split('T');
+      a.setAttribute("download", `${isAuto?'guinness_auto_backup':'guinness_ratings_backup'}_${ts[0]}_${ts[1].slice(0,5)}.json`);
+      document.body.appendChild(a); a.click(); a.remove();
+      if (!isAuto) alert('Backup exported!');
+    }
+    function importBackup(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = JSON.parse(evt.target.result);
+          if (Array.isArray(data)) { pintEntries = data; standardizeCountries(); saveToStorage(); alert(`Successfully imported ${data.length} entries!`); }
+          else alert('Invalid format.');
+        } catch(err) { alert('Error reading file. Use Paste JSON instead!'); }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
