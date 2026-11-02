@@ -52,24 +52,24 @@
       background: #FFFFFF;
       z-index: 9999;
       pointer-events: none;
-      transition: opacity 0.5s ease-in-out;
+      transition: opacity 0.6s ease-in-out;
     }
 
-    /* The Tap Nozzle Stream Shooting Down */
+    /* Thicker Tap Stream Shooting Down */
     #tapStream {
       position: absolute;
       top: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 14px;
+      width: 32px;
       height: 0%;
       background: linear-gradient(180deg, #1c1a17 0%, #0c0b0a 100%);
       z-index: 10001;
-      box-shadow: 0 0 12px rgba(139, 0, 0, 0.6);
-      transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+      box-shadow: 0 0 16px rgba(139, 0, 0, 0.6);
+      transition: height 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
-    /* Stout Liquid Filling Upward From Bottom */
+    /* Slower Bottom-Up Stout Fill Stopping Just Below the Head Bar */
     #bottomStoutFill {
       position: absolute;
       bottom: 0;
@@ -78,10 +78,11 @@
       height: 0%;
       background: #0c0b0a;
       z-index: 10000;
-      transition: height 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      /* Slower duration and smooth settling curve */
+      transition: height 2.2s cubic-bezier(0.25, 1, 0.5, 1);
       border-top-left-radius: 1.5rem;
       border-top-right-radius: 1.5rem;
-      box-shadow: 0 -4px 15px rgba(212, 175, 55, 0.3);
+      box-shadow: 0 -6px 20px rgba(212, 175, 55, 0.25);
     }
     
     /* Glass Edge Specular Highlight */
@@ -346,20 +347,26 @@
       renderApp(); 
       lucide.createIcons(); 
 
-      // NOZZLE TAP STREAM & BOTTOM FILL POUR ANIMATION
+      // WIDER STREAM & SLOWER POUR STOPPING JUST BELOW THE HEAD
       setTimeout(() => {
         document.getElementById('tapStream').style.height = '100%';
       }, 100);
 
       setTimeout(() => {
-        document.getElementById('bottomStoutFill').style.height = '100%';
-      }, 350);
+        // Fills to 92% height so it stops right underneath the white header bar
+        document.getElementById('bottomStoutFill').style.height = '92%';
+      }, 400);
+
+      setTimeout(() => {
+        // Cut off the tap stream right before fading out
+        document.getElementById('tapStream').style.opacity = '0';
+      }, 2300);
 
       setTimeout(() => {
         const overlay = document.getElementById('pourOverlay');
         overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 500);
-      }, 1450);
+        setTimeout(() => overlay.remove(), 600);
+      }, 2700);
     });
 
     function toggleDataDropdown(e) {
