@@ -41,31 +41,46 @@
     ::-webkit-scrollbar-track { background: #121212; }
     ::-webkit-scrollbar-thumb { background: #2e2a24; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--brand-accent); }
+
+    /* GUINNESS HEAD & SETTLE STYLES */
+    .guinness-head-bar {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F8F4EC 75%, #F0E8D8 100%);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .settle-line {
+      height: 3px;
+      background: linear-gradient(90deg, #D4AF37 0%, #8B0000 50%, #D4AF37 100%);
+    }
   </style>
 </head>
 <body class="min-h-screen pb-12">
 
-  <!-- HEADER (Guinness Head Style: White Background with Pour Settle Line) -->
-  <header class="bg-[#fcfbf9] text-stone-900 border-b-4 border-amber-500/80 sticky top-0 z-30 px-4 py-3 shadow-md">
-    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+  <!-- HEADER (Pazaz-infused Guinness Head Theme) -->
+  <header class="guinness-head-bar text-stone-900 sticky top-0 z-30 shadow-2xl">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-stone-200 border border-stone-300 flex items-center justify-center text-xl shadow-sm">
+        <div class="w-11 h-11 rounded-2xl bg-stone-950 border-2 border-amber-400 flex items-center justify-center text-2xl shadow-lg ring-2 ring-stone-900/10 transform hover:rotate-6 transition-transform">
           🍺
         </div>
         <div>
-          <h1 class="text-xl font-bold tracking-tight text-stone-900">Guinness Pint Journal</h1>
-          <p class="text-xs text-stone-600 font-medium">Track, Rate & Rank the Black Stuff</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-black tracking-tight text-stone-950 font-serif">Guinness Pint Journal</h1>
+            <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-900 border border-amber-700/30 px-1.5 py-0.5 rounded-full">Pro</span>
+          </div>
+          <p class="text-xs text-stone-600 font-medium tracking-wide">Track, Rate & Rank the Black Stuff</p>
         </div>
       </div>
       <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
-        <button onclick="cycleTheme()" title="Cycle Theme" class="p-2 bg-stone-200 hover:bg-stone-300 text-stone-800 rounded-lg border border-stone-300 transition">🎨</button>
-        <button onclick="exportBackup()" class="flex-1 sm:flex-initial px-3 py-2 text-xs font-medium bg-stone-200 hover:bg-stone-300 text-stone-800 rounded-lg border border-stone-300 flex items-center justify-center gap-1.5 transition"><i data-lucide="download" class="w-3.5 h-3.5"></i> Export</button>
-        <button onclick="togglePasteModal(true)" class="flex-1 sm:flex-initial px-3 py-2 text-xs font-medium bg-stone-200 hover:bg-stone-300 text-stone-800 rounded-lg border border-stone-300 flex items-center justify-center gap-1.5 transition"><i data-lucide="clipboard" class="w-3.5 h-3.5"></i> Paste JSON</button>
-        <label class="flex-1 sm:flex-initial px-3 py-2 text-xs font-medium bg-stone-900 text-stone-100 font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition shadow-sm hover:bg-stone-800">
+        <button onclick="cycleTheme()" title="Cycle Theme" class="p-2.5 bg-white/90 hover:bg-white text-stone-900 rounded-xl border border-stone-300/80 shadow-sm transition active:scale-95">🎨</button>
+        <button onclick="exportBackup()" class="flex-1 sm:flex-initial px-3.5 py-2 text-xs font-bold bg-white/90 hover:bg-white text-stone-900 rounded-xl border border-stone-300/80 flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95"><i data-lucide="download" class="w-3.5 h-3.5 text-amber-700"></i> Export</button>
+        <button onclick="togglePasteModal(true)" class="flex-1 sm:flex-initial px-3.5 py-2 text-xs font-bold bg-white/90 hover:bg-white text-stone-900 rounded-xl border border-stone-300/80 flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95"><i data-lucide="clipboard" class="w-3.5 h-3.5 text-amber-700"></i> Paste JSON</button>
+        <label class="flex-1 sm:flex-initial px-3.5 py-2 text-xs font-extrabold bg-stone-950 hover:bg-stone-900 text-stone-100 rounded-xl cursor-pointer flex items-center justify-center gap-1.5 transition shadow-md active:scale-95 border border-amber-500/40">
           <i data-lucide="upload" class="w-3.5 h-3.5 text-amber-400"></i> Import <input type="file" id="jsonFileInput" accept="*/*" class="hidden" onchange="importBackup(event)" />
         </label>
       </div>
     </div>
+    <!-- The Settle Line (Gold/Ruby gradient transition to dark body) -->
+    <div class="settle-line"></div>
   </header>
 
   <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
@@ -388,9 +403,9 @@
       const filtered = c ? pintEntries.filter(e => e.country === c) : pintEntries;
       const counties = [...new Set(filtered.map(e => e.county).filter(Boolean))].sort(), cur = sel.value;
       sel.innerHTML = '<option value="">All Counties</option>' + counties.map(x => `<option value="${x}">${x}</option>`).join('');
-      sel.value = counties.includes(cur) ? cur : ''; onFilterCountryChange2();
+      sel.value = counties.includes(cur) ? cur : ''; onFilterCountyChange2();
     }
-    function onFilterCountryChange2() {
+    function onFilterCountyChange2() {
       const sel = document.getElementById('filterCity'); if (!sel) return;
       const c = document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : '';
       const county = document.getElementById('filterCounty') ? document.getElementById('filterCounty').value : '';
