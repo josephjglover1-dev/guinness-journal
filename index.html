@@ -31,7 +31,66 @@
       --brand-accent-bg: rgba(249, 115, 22, 0.15);
       --brand-accent-border: rgba(249, 115, 22, 0.3);
     }
-    body { background-color: #0d0d0c; color: #e5e5e5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    
+    /* 1. GLASS EDGE REFLECTION & BACKGROUND WATERMARK */
+    body { 
+      background-color: #0c0b0a; 
+      color: #e5e5e5; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    /* Curved Glass Specular Highlight (Reflection down the right side) */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 120px;
+      height: 100vh;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.03) 70%, rgba(255, 255, 255, 0.07) 100%);
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    /* 2. HARP WATERMARK BACKGROUND */
+    .harp-watermark {
+      position: fixed;
+      top: 55%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 320px;
+      height: 320px;
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* GUINNESS HEAD & CURVED GLASS RIM STYLES */
+    .guinness-head-bar {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F8F4EC 75%, #F0E8D8 100%);
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
+      border-bottom-left-radius: 1.25rem;
+      border-bottom-right-radius: 1.25rem;
+    }
+    .settle-line {
+      height: 3px;
+      background: linear-gradient(90deg, #D4AF37 0%, #8B0000 50%, #D4AF37 100%);
+      border-bottom-left-radius: 1.25rem;
+      border-bottom-right-radius: 1.25rem;
+    }
+
+    /* 3. SURGE & SETTLE ANIMATION */
+    @keyframes surgeSettle {
+      0% { opacity: 0; transform: translateY(12px); filter: blur(3px); }
+      70% { opacity: 0.9; transform: translateY(-2px); filter: blur(0px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .surge-anim {
+      animation: surgeSettle 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
     .text-accent { color: var(--brand-accent); }
     .bg-accent { background-color: var(--brand-accent); }
     .bg-accent-soft { background-color: var(--brand-accent-bg); }
@@ -41,21 +100,16 @@
     ::-webkit-scrollbar-track { background: #121212; }
     ::-webkit-scrollbar-thumb { background: #2e2a24; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--brand-accent); }
-
-    /* GUINNESS HEAD & SETTLE STYLES */
-    .guinness-head-bar {
-      background: linear-gradient(180deg, #FFFFFF 0%, #F8F4EC 75%, #F0E8D8 100%);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    }
-    .settle-line {
-      height: 3px;
-      background: linear-gradient(90deg, #D4AF37 0%, #8B0000 50%, #D4AF37 100%);
-    }
   </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen pb-12 surge-anim">
 
-  <!-- HEADER (Pazaz-infused Guinness Head Theme) -->
+  <!-- 2. HARP WATERMARK (SVG) -->
+  <svg class="harp-watermark" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-2h2v2zm0-4h-2V7h2v5.5z"/>
+  </svg>
+
+  <!-- HEADER (Guinness Head & Curved Rim) -->
   <header class="guinness-head-bar text-stone-900 sticky top-0 z-30 shadow-2xl">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3">
       <div class="flex items-center gap-3">
@@ -64,7 +118,7 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-xl font-black tracking-tight text-stone-950 font-serif">Guinness Pint Journal</h1>
+            <h1 class="text-xl font-black tracking-tight text-stone-950">Guinness Pint Journal</h1>
             <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-900 border border-amber-700/30 px-1.5 py-0.5 rounded-full">Pro</span>
           </div>
           <p class="text-xs text-stone-600 font-medium tracking-wide">Track, Rate & Rank the Black Stuff</p>
@@ -79,11 +133,11 @@
         </label>
       </div>
     </div>
-    <!-- The Settle Line (Gold/Ruby gradient transition to dark body) -->
+    <!-- The Settle Line -->
     <div class="settle-line"></div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
+  <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6 relative z-10">
     <!-- STATS -->
     <div class="grid grid-cols-3 gap-2.5">
       <div class="bg-stone-900/60 border border-stone-800 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
