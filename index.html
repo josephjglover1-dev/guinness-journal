@@ -32,7 +32,6 @@
       --brand-accent-border: rgba(249, 115, 22, 0.3);
     }
     
-    /* 1. GLASS EDGE REFLECTION & BACKGROUND WATERMARK */
     body { 
       background-color: #0c0b0a; 
       color: #e5e5e5; 
@@ -41,7 +40,7 @@
       overflow-x: hidden;
     }
     
-    /* Curved Glass Specular Highlight (Reflection down the right side) */
+    /* Glass Edge Specular Highlight */
     body::before {
       content: "";
       position: fixed;
@@ -54,20 +53,21 @@
       z-index: 40;
     }
 
-    /* 2. HARP WATERMARK BACKGROUND */
+    /* 2. ENHANCED HARP WATERMARK (Visible & Elegant) */
     .harp-watermark {
       position: fixed;
       top: 55%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 320px;
-      height: 320px;
-      opacity: 0.03;
+      width: 380px;
+      height: 380px;
+      opacity: 0.07;
       pointer-events: none;
       z-index: 0;
+      filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.1));
     }
 
-    /* GUINNESS HEAD & CURVED GLASS RIM STYLES */
+    /* Guinness Head & Curved Glass Rim */
     .guinness-head-bar {
       background: linear-gradient(180deg, #FFFFFF 0%, #F8F4EC 75%, #F0E8D8 100%);
       box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
@@ -81,14 +81,14 @@
       border-bottom-right-radius: 1.25rem;
     }
 
-    /* 3. SURGE & SETTLE ANIMATION */
+    /* 3. SURGE & SETTLE ANIMATION (Applied cleanly on render) */
     @keyframes surgeSettle {
-      0% { opacity: 0; transform: translateY(12px); filter: blur(3px); }
-      70% { opacity: 0.9; transform: translateY(-2px); filter: blur(0px); }
+      0% { opacity: 0; transform: translateY(16px); filter: blur(4px); }
+      60% { opacity: 0.8; transform: translateY(-2px); filter: blur(0px); }
       100% { opacity: 1; transform: translateY(0); }
     }
     .surge-anim {
-      animation: surgeSettle 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: surgeSettle 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .text-accent { color: var(--brand-accent); }
@@ -102,14 +102,14 @@
     ::-webkit-scrollbar-thumb:hover { background: var(--brand-accent); }
   </style>
 </head>
-<body class="min-h-screen pb-12 surge-anim">
+<body class="min-h-screen pb-12">
 
-  <!-- 2. HARP WATERMARK (SVG) -->
+  <!-- 2. CLEAR IRISH HARP WATERMARK SVG -->
   <svg class="harp-watermark" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-2h2v2zm0-4h-2V7h2v5.5z"/>
+    <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2ZM12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8,8,3.59,8,8-3.59,8-8,8Zm-1-13h2v5.5h-2ZM11,14.5h2V16.5h-2Z"/>
   </svg>
 
-  <!-- HEADER (Guinness Head & Curved Rim) -->
+  <!-- HEADER -->
   <header class="guinness-head-bar text-stone-900 sticky top-0 z-30 shadow-2xl">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3">
       <div class="flex items-center gap-3">
@@ -137,7 +137,7 @@
     <div class="settle-line"></div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6 relative z-10">
+  <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6 relative z-10 surge-anim">
     <!-- STATS -->
     <div class="grid grid-cols-3 gap-2.5">
       <div class="bg-stone-900/60 border border-stone-800 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
@@ -457,9 +457,9 @@
       const filtered = c ? pintEntries.filter(e => e.country === c) : pintEntries;
       const counties = [...new Set(filtered.map(e => e.county).filter(Boolean))].sort(), cur = sel.value;
       sel.innerHTML = '<option value="">All Counties</option>' + counties.map(x => `<option value="${x}">${x}</option>`).join('');
-      sel.value = counties.includes(cur) ? cur : ''; onFilterCountyChange2();
+      sel.value = counties.includes(cur) ? cur : ''; onFilterCountryChange2();
     }
-    function onFilterCountyChange2() {
+    function onFilterCountryChange2() {
       const sel = document.getElementById('filterCity'); if (!sel) return;
       const c = document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : '';
       const county = document.getElementById('filterCounty') ? document.getElementById('filterCounty').value : '';
@@ -541,7 +541,7 @@
     }
     function renderCard(item, idx, unranked = false) {
       const loc = formatLocation(item), maps = getGoogleMapsUrl(item.pubName, loc);
-      return `<div class="bg-stone-900/80 border ${unranked?'border-red-950/60':'border-stone-800'} rounded-2xl p-4 flex flex-col justify-between shadow-lg relative group"><div><div class="flex items-start justify-between gap-2 mb-2"><div><span class="text-[10px] font-bold ${unranked?'text-red-400':'text-stone-500'}">${unranked?'NO GUINNESS':'RANK #'+(idx+1)}</span><h3 class="font-bold text-base text-stone-100"><a href="${maps}" target="_blank" class="hover:text-accent hover:underline">${item.pubName}</a></h3><div class="text-xs text-stone-400 flex items-center gap-1 mt-0.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-accent"></i> ${loc||'Unknown'}</div></div><div>${getAvgBadge(item.avgScore, unranked)}</div></div><div class="grid grid-cols-3 gap-2 my-3 p-2.5 rounded-xl bg-stone-950/60 border border-stone-800/60 text-center"><div><div class="text-[10px] text-stone-500 mb-1">Pint</div>${getScoreBadge(item.pintScore, unranked)}</div><div><div class="text-[10px] text-stone-500 mb-1">Ambience</div>${getScoreBadge(item.ambienceScore)}</div><div><div class="text-[10px] text-stone-500 mb-1">Staff</div>${getScoreBadge(item.staffScore)}</div></div>${item.notes?`<p class="text-xs text-stone-400 italic bg-stone-950/30 p-2 rounded-lg">"${item.notes}"</p>`:''}</div><div class="flex items-center justify-between mt-3 pt-2 border-t border-stone-800/50 text-[11px] text-stone-500"><span>${item.visitDate?'Visited: '+item.visitDate:''}</span><div class="flex items-center gap-2"><button onclick="editEntry('${item.id}')" class="text-stone-400 hover:text-accent flex items-center gap-1"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit</button><button onclick="deleteEntry('${item.id}')" class="text-stone-500 hover:text-red-400 flex items-center gap-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</button></div></div></div>`;
+      return `<div class="bg-stone-900/80 border ${unranked?'border-red-950/60':'border-stone-800'} rounded-2xl p-4 flex flex-col justify-between shadow-lg relative group"><div><div class="flex items-start justify-between gap-2 mb-2"><div><span class="text-[10px] font-bold ${unranked?'text-red-400':'text-stone-500'}">${unranked?'NO GUINNESS':'RANK #'+(idx+1)}</span><h3 class="font-bold text-base text-stone-100"><a href="${maps}" target="_blank" class="hover:text-accent hover:underline">${item.pubName}</a></h3><div class="text-xs text-stone-400 flex items-center gap-1 mt-0.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-accent"></i> ${loc||'Unknown'}</div></div><div>${getAvgBadge(item.avgScore, unranked)}</div></div><div class="grid grid-cols-3 gap-2 my-3 p-2.5 rounded-xl bg-stone-950/60 border border-stone-800/60 text-center"><div><div class="text-[10px] text-stone-500 mb-1">Pint</div>${getScoreBadge(item.pintScore, unranked)}</div><div><div class="text-[10px] text-stone-500 mb-1">Ambience</div>${getScoreBadge(item.ambienceScore)}</div><div><div class="text-[10px] text-stone-500 mb-1">Staff</div>${getScoreBadge(item.staffScore)}</div></div>${item.notes?`<p class="text-xs text-stone-400 italic bg-stone-950/30 p-2 rounded-lg">"${item.notes}"</p>`:''}</div><div class="flex items-center justify-between mt-3 pt-2 border-t border-stone-800/50 text-[11px] text-stone-500"><span>${item.visitDate?'Visited: '+item.visitDate:''}</span><div class="flex items-center gap-2"><button onclick="editEntry('${item.id}')" class="text-stone-400 hover:text-accent flex items-center gap-1"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit</button><button onclick="deleteEntry('${item.id}')" class="p-1 text-stone-500 hover:text-red-400 flex items-center gap-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</button></div></div></div>`;
     }
     function renderCardView(container, main, unranked) {
       container.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${main.map((i,idx)=>renderCard(i,idx,false)).join('')}</div>${unranked.length>0?`<div class="mt-8 space-y-3"><div class="border-b border-red-950/80 pb-2"><h3 class="text-xs font-bold text-red-300 uppercase">🚫 No Guinness Available (${unranked.length} Pubs)</h3></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${unranked.map(i=>renderCard(i,0,true)).join('')}</div></div>`:''}`;
