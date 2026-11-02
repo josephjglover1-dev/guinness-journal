@@ -31,6 +31,12 @@
       --brand-accent-bg: rgba(249, 115, 22, 0.15);
       --brand-accent-border: rgba(249, 115, 22, 0.3);
     }
+    /* 4TH COLOR SCHEME: GUINNESS RUBY RED */
+    body.theme-ruby {
+      --brand-accent: #E63946;
+      --brand-accent-bg: rgba(230, 57, 70, 0.18);
+      --brand-accent-border: rgba(230, 57, 70, 0.4);
+    }
     
     body { 
       background-color: #0c0b0a; 
@@ -53,20 +59,7 @@
       z-index: 40;
     }
 
-    /* REFINED IRISH HARP WATERMARK */
-    .harp-watermark {
-      position: fixed;
-      top: 52%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 340px;
-      height: 340px;
-      opacity: 0.12;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* MORE NOTICEABLE SURGE & SETTLE BUBBLES */
+    /* SURGE & SETTLE BUBBLES */
     .bubble-container {
       position: fixed;
       inset: 0;
@@ -88,7 +81,7 @@
       100% { transform: translateY(-105vh) scale(1.3); opacity: 0; }
     }
 
-    /* Guinness Head & Curved Glass Rim */
+    /* GUINNESS HEAD & DEEP RUBY SETTLE LINE */
     .guinness-head-bar {
       background: linear-gradient(180deg, #FFFFFF 0%, #F8F4EC 75%, #F0E8D8 100%);
       box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
@@ -96,10 +89,17 @@
       border-bottom-right-radius: 1.25rem;
     }
     .settle-line {
-      height: 3px;
-      background: linear-gradient(90deg, #D4AF37 0%, #8B0000 50%, #D4AF37 100%);
+      height: 4px;
+      background: linear-gradient(90deg, #8B0000 0%, #D4AF37 25%, #A10000 50%, #D4AF37 75%, #8B0000 100%);
       border-bottom-left-radius: 1.25rem;
       border-bottom-right-radius: 1.25rem;
+      box-shadow: 0 0 10px rgba(139, 0, 0, 0.8);
+    }
+
+    /* RUBY GLOW ACCENTS */
+    .ruby-glow {
+      box-shadow: 0 0 12px rgba(139, 0, 0, 0.35);
+      border-color: rgba(139, 0, 0, 0.5) !important;
     }
 
     .text-accent { color: var(--brand-accent); }
@@ -115,7 +115,7 @@
 </head>
 <body class="min-h-screen pb-12">
 
-  <!-- NOTICEABLE SURGE & SETTLE BUBBLES -->
+  <!-- SURGE & SETTLE BUBBLES -->
   <div class="bubble-container">
     <div class="bubble" style="left: 10%; width: 7px; height: 7px; animation-duration: 5s; animation-delay: 0s;"></div>
     <div class="bubble" style="left: 25%; width: 5px; height: 5px; animation-duration: 7s; animation-delay: 1.5s;"></div>
@@ -124,11 +124,6 @@
     <div class="bubble" style="left: 80%; width: 7px; height: 7px; animation-duration: 5.5s; animation-delay: 0.4s;"></div>
     <div class="bubble" style="left: 90%; width: 5px; height: 5px; animation-duration: 8s; animation-delay: 3s;"></div>
   </div>
-
-  <!-- CLEAN IRISH HARP SILHOUETTE SVG -->
-  <svg class="harp-watermark" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M18.5,3.5C17.7,2.5 16,1.5 13.5,1.5C9.5,1.5 6.5,4.5 6,9C5.8,11.2 6.5,13.5 7.8,15.2C6.8,16.2 6,17.8 6,19.5C6,21.4 7.6,23 9.5,23C11.5,23 13.2,21.3 13.2,19.3C13.2,18.8 13.1,18.3 12.9,17.8C13.8,18.1 14.8,18.2 15.8,18C18.2,17.5 20,15.2 20,12.5C20,7.5 19.5,4.5 18.5,3.5ZM9.5,21.5C8.4,21.5 7.5,20.6 7.5,19.5C7.5,18.2 8.8,16.8 10.2,16.2C10.7,17.2 11.2,18.2 11.5,19.3C11.3,20.5 10.5,21.5 9.5,21.5ZM18.5,12.2C18.5,14.3 17,16.2 14.8,16.5C13.8,16.7 12.8,16.5 12,16C12.5,14.2 12.8,12.2 12.8,10C12.8,7.8 12,5.8 10.5,4.2C13.2,3.8 16.5,5.5 17.8,7.8C18.3,8.9 18.5,10.5 18.5,12.2Z"/>
-  </svg>
 
   <!-- HEADER -->
   <header class="guinness-head-bar text-stone-900 sticky top-0 z-30 shadow-2xl">
@@ -154,7 +149,7 @@
         </label>
       </div>
     </div>
-    <!-- The Settle Line -->
+    <!-- Deep Ruby Settle Line -->
     <div class="settle-line"></div>
   </header>
 
@@ -169,18 +164,19 @@
         <div class="p-2 rounded-lg bg-stone-800 text-accent group-hover:scale-110 transition-transform"><i data-lucide="globe" class="w-4 h-4"></i></div>
         <div><div class="text-[10px] text-stone-400 uppercase flex items-center gap-1">Countries Drank <i data-lucide="bar-chart-2" class="w-3 h-3 text-accent"></i></div><div id="statCountries" class="text-base font-bold text-accent">0</div></div>
       </div>
-      <div class="bg-stone-900/60 border border-stone-800 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
-        <div class="p-2 rounded-lg bg-stone-800 text-accent"><i data-lucide="crown" class="w-4 h-4"></i></div>
+      <!-- Perfect 10/10 with Ruby Glow -->
+      <div class="bg-stone-900/80 border rounded-xl px-3 py-2.5 flex items-center gap-2.5 ruby-glow">
+        <div class="p-2 rounded-lg bg-red-950/80 text-red-400"><i data-lucide="crown" class="w-4 h-4"></i></div>
         <div><div class="text-[10px] text-stone-400 uppercase">10/10 Perfect</div><div id="stat10s" class="text-base font-bold text-stone-100">0</div></div>
       </div>
     </div>
 
     <!-- ACTION BAR -->
     <div class="grid grid-cols-2 gap-2.5">
-      <button onclick="toggleForm()" class="bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-accent-soft rounded-xl py-3 px-4 flex items-center justify-center gap-2 text-stone-100 font-semibold text-xs sm:text-sm transition shadow-md group">
+      <button onclick="toggleForm()" class="bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-accent-soft rounded-xl py-3 px-4 flex items-center justify-center gap-2 text-stone-100 font-semibold text-xs sm:text-sm transition shadow-md group active:bg-red-950/30">
         <i data-lucide="plus-circle" class="w-4 h-4 text-accent group-hover:scale-110 transition-transform"></i> Add New Pint
       </button>
-      <button onclick="toggleSearchModal(true)" class="bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-accent-soft rounded-xl py-3 px-4 flex items-center justify-center gap-2 text-stone-100 font-semibold text-xs sm:text-sm transition shadow-md group">
+      <button onclick="toggleSearchModal(true)" class="bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-accent-soft rounded-xl py-3 px-4 flex items-center justify-center gap-2 text-stone-100 font-semibold text-xs sm:text-sm transition shadow-md group active:bg-red-950/30">
         <i data-lucide="search" class="w-4 h-4 text-accent group-hover:scale-110 transition-transform"></i> Search & Filters <span id="filterActiveBadge" class="hidden w-2 h-2 rounded-full bg-accent"></span>
       </button>
     </div>
@@ -306,11 +302,12 @@
       populateFormSuggestions(); initFilters(); renderApp();
     }
     function cycleTheme() {
-      currentTheme = currentTheme === 'gold' ? 'emerald' : currentTheme === 'emerald' ? 'copper' : 'gold';
+      // CYCLES THROUGH 4 THEMES: Gold -> Emerald -> Copper -> Ruby Red -> Gold
+      currentTheme = currentTheme === 'gold' ? 'emerald' : currentTheme === 'emerald' ? 'copper' : currentTheme === 'copper' ? 'ruby' : 'gold';
       applyTheme(currentTheme); localStorage.setItem('guinness_theme', currentTheme);
     }
     function applyTheme(t) {
-      document.body.classList.remove('theme-emerald', 'theme-copper');
+      document.body.classList.remove('theme-emerald', 'theme-copper', 'theme-ruby');
       if (t !== 'gold') document.body.classList.add(`theme-${t}`);
     }
     function standardizeCountries() {
@@ -554,7 +551,8 @@
     }
     function renderTableRow(item, idx, unranked = false) {
       const loc = formatLocation(item), maps = getGoogleMapsUrl(item.pubName, loc);
-      let rank = unranked ? `<span class="text-xs text-stone-600">—</span>` : (idx===0 && !hasActiveFilters()? `<span class="text-xs font-black text-accent bg-accent-soft px-1.5 py-0.5 rounded border border-accent-soft">🥇 #1</span>` : idx===1 && !hasActiveFilters()? `<span class="text-xs font-black text-stone-300 bg-stone-300/10 px-1.5 py-0.5 rounded border border-stone-300/30">🥈 #2</span>` : idx===2 && !hasActiveFilters()? `<span class="text-xs font-black text-amber-600 bg-amber-600/10 px-1.5 py-0.5 rounded border border-amber-600/30">🥉 #3</span>` : `<span class="text-xs font-bold text-stone-500">#${idx+1}</span>`);
+      /* Ruby Red Glow on #1 Rank Badge */
+      let rank = unranked ? `<span class="text-xs text-stone-600">—</span>` : (idx===0 && !hasActiveFilters()? `<span class="text-xs font-black text-amber-300 bg-red-950/80 px-1.5 py-0.5 rounded border border-red-600/60 shadow-[0_0_8px_rgba(139,0,0,0.6)]">🥇 #1</span>` : idx===1 && !hasActiveFilters()? `<span class="text-xs font-black text-stone-300 bg-stone-300/10 px-1.5 py-0.5 rounded border border-stone-300/30">🥈 #2</span>` : idx===2 && !hasActiveFilters()? `<span class="text-xs font-black text-amber-600 bg-amber-600/10 px-1.5 py-0.5 rounded border border-amber-600/30">🥉 #3</span>` : `<span class="text-xs font-bold text-stone-500">#${idx+1}</span>`);
       return `<tr class="border-b border-stone-800/60 hover:bg-stone-800/30 transition group"><td class="py-2.5 px-2 text-xs">${rank}</td><td class="py-2.5 px-2"><div class="font-bold text-xs sm:text-sm text-stone-100"><a href="${maps}" target="_blank" class="hover:text-accent hover:underline">${item.pubName}</a></div><div class="text-[10px] text-stone-400 flex items-start gap-1 mt-0.5 leading-tight"><i data-lucide="map-pin" class="w-3 h-3 text-accent shrink-0 mt-0.5"></i><span>${loc||'Unknown'}</span></div></td><td class="py-2.5 px-1.5 text-center">${getScoreBadge(item.pintScore, unranked)}</td><td class="py-2.5 px-1.5 text-center">${getScoreBadge(item.ambienceScore)}</td><td class="py-2.5 px-1.5 text-center">${getScoreBadge(item.staffScore)}</td><td class="py-2.5 px-2 text-center">${getAvgBadge(item.avgScore, unranked)}</td><td class="py-2.5 px-2 text-right"><div class="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100"><button onclick="editEntry('${item.id}')" class="p-1 text-stone-400 hover:text-accent"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button><button onclick="deleteEntry('${item.id}')" class="p-1 text-stone-500 hover:text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div></td></tr>`;
     }
     function renderTableView(container, main, unranked) {
