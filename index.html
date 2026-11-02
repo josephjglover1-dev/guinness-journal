@@ -45,36 +45,43 @@
       overflow-x: hidden;
     }
 
-    /* PINT POUR POUR-OVER ANIMATION ON LOAD */
+    /* REALISTIC PINT POUR FROM TAP NOZZLE */
     #pourOverlay {
       position: fixed;
       inset: 0;
       background: #FFFFFF;
       z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.6s ease-in-out;
+      pointer-events: none;
+      transition: opacity 0.5s ease-in-out;
     }
-    #pourStoutCurtain {
+
+    /* The Tap Nozzle Stream Shooting Down */
+    #tapStream {
       position: absolute;
       top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 0%;
+      background: linear-gradient(180deg, #1c1a17 0%, #0c0b0a 100%);
+      z-index: 10001;
+      box-shadow: 0 0 12px rgba(139, 0, 0, 0.6);
+      transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Stout Liquid Filling Upward From Bottom */
+    #bottomStoutFill {
+      position: absolute;
+      bottom: 0;
       left: 0;
       width: 100%;
       height: 0%;
       background: #0c0b0a;
-      transition: height 1.2s cubic-bezier(0.77, 0, 0.175, 1);
-      border-bottom-left-radius: 2rem;
-      border-bottom-right-radius: 2rem;
       z-index: 10000;
-    }
-    #pourContent {
-      position: relative;
-      z-index: 10001;
-      color: #1c1a17;
-      text-align: center;
-      transition: opacity 0.3s ease;
+      transition: height 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border-top-left-radius: 1.5rem;
+      border-top-right-radius: 1.5rem;
+      box-shadow: 0 -4px 15px rgba(212, 175, 55, 0.3);
     }
     
     /* Glass Edge Specular Highlight */
@@ -146,13 +153,10 @@
 </head>
 <body class="min-h-screen pb-12" onclick="closeAllDropdowns(event)">
 
-  <!-- POUR ANIMATION OVERLAY -->
+  <!-- REALISTIC PINT POUR ANIMATION -->
   <div id="pourOverlay">
-    <div id="pourStoutCurtain"></div>
-    <div id="pourContent">
-      <div class="text-4xl mb-2 animate-bounce">🍺</div>
-      <div class="font-black text-lg tracking-tight">Pouring the Pint...</div>
-    </div>
+    <div id="tapStream"></div>
+    <div id="bottomStoutFill"></div>
   </div>
 
   <!-- SURGE & SETTLE BUBBLES -->
@@ -342,17 +346,20 @@
       renderApp(); 
       lucide.createIcons(); 
 
-      // TRIGGER THE POUR ANIMATION ON LOAD
+      // NOZZLE TAP STREAM & BOTTOM FILL POUR ANIMATION
       setTimeout(() => {
-        document.getElementById('pourStoutCurtain').style.height = '100%';
-        document.getElementById('pourContent').style.opacity = '0';
-      }, 200);
+        document.getElementById('tapStream').style.height = '100%';
+      }, 100);
+
+      setTimeout(() => {
+        document.getElementById('bottomStoutFill').style.height = '100%';
+      }, 350);
 
       setTimeout(() => {
         const overlay = document.getElementById('pourOverlay');
         overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 600);
-      }, 1200);
+        setTimeout(() => overlay.remove(), 500);
+      }, 1450);
     });
 
     function toggleDataDropdown(e) {
@@ -475,7 +482,7 @@
           const subTally = {}; pintEntries.filter(e => (e.country || 'Unknown') === c).forEach(e => { const loc = e.county || e.city || 'Other'; subTally[loc] = (subTally[loc] || 0) + 1; });
           sub = `<div class="mt-2 pt-2 border-t border-stone-800 space-y-1 pl-2"><div class="text-[10px] font-semibold text-stone-400 uppercase">County / City Breakdown:</div>${Object.entries(subTally).sort((a,b)=>b[1]-a[1]).map(([l, sc]) => `<div class="flex justify-between items-center text-[11px] text-stone-300 py-0.5"><span class="truncate pr-2">• ${l}</span><span class="text-accent">${sc} pubs</span></div>`).join('')}</div>`;
         }
-        return `<div class="bg-stone-950 p-3 rounded-xl border ${exp ? 'border-accent-soft' : 'border-stone-800/80'} cursor-pointer space-y-1.5" onclick="toggleCountryExpand('${c}')"><div class="flex justify-between items-center text-xs"><span class="font-bold text-stone-200 flex items-center gap-1.5 ${c} <i data-lucide="${exp?'chevron-up':'chevron-down'}" class="w-3.5 h-3.5 text-stone-400"></i></span><span class="text-accent font-semibold">${count} pubs (${pct}%)</span></div><div class="w-full h-2 bg-stone-800 rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width: ${pct}%"></div></div>${sub}</div>`;
+        return `<div class="bg-stone-950 p-3 rounded-xl border ${exp ? 'border-accent-soft' : 'border-stone-800/80'} cursor-pointer space-y-1.5" onclick="toggleCountryExpand('${c}')"><div class="flex justify-between items-center text-xs"><span class="font-bold text-stone-200 flex items-center gap-1.5">${c} <i data-lucide="${exp?'chevron-up':'chevron-down'}" class="w-3.5 h-3.5 text-stone-400"></i></span><span class="text-accent font-semibold">${count} pubs (${pct}%)</span></div><div class="w-full h-2 bg-stone-800 rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width: ${pct}%"></div></div>${sub}</div>`;
       }).join('');
       lucide.createIcons();
     }
