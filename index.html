@@ -53,20 +53,20 @@
       z-index: 40;
     }
 
-    /* 2. PROPER IRISH HARP WATERMARK BACKGROUND */
+    /* REFINED IRISH HARP WATERMARK */
     .harp-watermark {
       position: fixed;
-      top: 55%;
+      top: 52%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 320px;
-      height: 320px;
-      opacity: 0.08;
+      width: 340px;
+      height: 340px;
+      opacity: 0.12;
       pointer-events: none;
       z-index: 0;
     }
 
-    /* 3. SURGE & SETTLE BUBBLE ANIMATION */
+    /* MORE NOTICEABLE SURGE & SETTLE BUBBLES */
     .bubble-container {
       position: fixed;
       inset: 0;
@@ -76,16 +76,16 @@
     }
     .bubble {
       position: absolute;
-      bottom: -20px;
-      background: radial-gradient(circle, rgba(212,175,55,0.8) 0%, rgba(212,175,55,0.2) 70%, transparent 100%);
+      bottom: -30px;
+      background: radial-gradient(circle, rgba(212,175,55,0.95) 0%, rgba(212,175,55,0.4) 60%, transparent 100%);
       border-radius: 50%;
       animation: riseBubble linear infinite;
     }
     @keyframes riseBubble {
-      0% { transform: translateY(0) scale(0.6); opacity: 0; }
-      20% { opacity: 0.6; }
-      80% { opacity: 0.4; }
-      100% { transform: translateY(-105vh) scale(1.2); opacity: 0; }
+      0% { transform: translateY(0) scale(0.5); opacity: 0; }
+      15% { opacity: 0.85; }
+      85% { opacity: 0.6; }
+      100% { transform: translateY(-105vh) scale(1.3); opacity: 0; }
     }
 
     /* Guinness Head & Curved Glass Rim */
@@ -115,18 +115,19 @@
 </head>
 <body class="min-h-screen pb-12">
 
-  <!-- 3. SURGE & SETTLE BUBBLES -->
+  <!-- NOTICEABLE SURGE & SETTLE BUBBLES -->
   <div class="bubble-container">
-    <div class="bubble" style="left: 15%; width: 6px; height: 6px; animation-duration: 7s; animation-delay: 0s;"></div>
-    <div class="bubble" style="left: 35%; width: 4px; height: 4px; animation-duration: 9s; animation-delay: 2s;"></div>
-    <div class="bubble" style="left: 55%; width: 5px; height: 5px; animation-duration: 6s; animation-delay: 1s;"></div>
-    <div class="bubble" style="left: 75%; width: 7px; height: 7px; animation-duration: 8s; animation-delay: 3s;"></div>
-    <div class="bubble" style="left: 85%; width: 4px; height: 4px; animation-duration: 10s; animation-delay: 1.5s;"></div>
+    <div class="bubble" style="left: 10%; width: 7px; height: 7px; animation-duration: 5s; animation-delay: 0s;"></div>
+    <div class="bubble" style="left: 25%; width: 5px; height: 5px; animation-duration: 7s; animation-delay: 1.5s;"></div>
+    <div class="bubble" style="left: 45%; width: 8px; height: 8px; animation-duration: 4.5s; animation-delay: 0.8s;"></div>
+    <div class="bubble" style="left: 60%; width: 6px; height: 6px; animation-duration: 6.5s; animation-delay: 2.2s;"></div>
+    <div class="bubble" style="left: 80%; width: 7px; height: 7px; animation-duration: 5.5s; animation-delay: 0.4s;"></div>
+    <div class="bubble" style="left: 90%; width: 5px; height: 5px; animation-duration: 8s; animation-delay: 3s;"></div>
   </div>
 
-  <!-- 2. IRISH HARP WATERMARK SVG -->
+  <!-- CLEAN IRISH HARP SILHOUETTE SVG -->
   <svg class="harp-watermark" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2C9.5 2 7.5 3.5 6.5 5.5C6.1 6.3 6 7.1 6 8V16C6 18.2 7.8 20 10 20C11.5 20 12.8 19.1 13.5 17.8C13.8 18.5 14.5 19 15.3 19C16.8 19 18 17.8 18 16.3V8C18 7.1 17.9 6.3 17.5 5.5C16.5 3.5 14.5 2 12 2ZM10 18C8.9 18 8 17.1 8 16V8C8 7.5 8.1 7 8.3 6.5C8.9 5.2 10.3 4.2 12 4.2C13.7 4.2 15.1 5.2 15.7 6.5C15.9 7 16 7.5 16 8V16.3C16 16.7 15.7 17 15.3 17C14.9 17 14.6 16.7 14.6 16.3V9.5H13.2V16.5C13.2 17.3 12.5 18 11.7 18H10ZM10.5 8H13.5V11.5H10.5V8Z"/>
+    <path d="M18.5,3.5C17.7,2.5 16,1.5 13.5,1.5C9.5,1.5 6.5,4.5 6,9C5.8,11.2 6.5,13.5 7.8,15.2C6.8,16.2 6,17.8 6,19.5C6,21.4 7.6,23 9.5,23C11.5,23 13.2,21.3 13.2,19.3C13.2,18.8 13.1,18.3 12.9,17.8C13.8,18.1 14.8,18.2 15.8,18C18.2,17.5 20,15.2 20,12.5C20,7.5 19.5,4.5 18.5,3.5ZM9.5,21.5C8.4,21.5 7.5,20.6 7.5,19.5C7.5,18.2 8.8,16.8 10.2,16.2C10.7,17.2 11.2,18.2 11.5,19.3C11.3,20.5 10.5,21.5 9.5,21.5ZM18.5,12.2C18.5,14.3 17,16.2 14.8,16.5C13.8,16.7 12.8,16.5 12,16C12.5,14.2 12.8,12.2 12.8,10C12.8,7.8 12,5.8 10.5,4.2C13.2,3.8 16.5,5.5 17.8,7.8C18.3,8.9 18.5,10.5 18.5,12.2Z"/>
   </svg>
 
   <!-- HEADER -->
