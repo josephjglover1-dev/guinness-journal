@@ -52,7 +52,7 @@
       background: #FFFFFF;
       z-index: 9999;
       pointer-events: none;
-      transition: opacity 0.6s ease-in-out;
+      transition: opacity 0.8s ease-in-out;
     }
 
     /* Thicker Tap Stream Shooting Down */
@@ -66,10 +66,10 @@
       background: linear-gradient(180deg, #1c1a17 0%, #0c0b0a 100%);
       z-index: 10001;
       box-shadow: 0 0 16px rgba(139, 0, 0, 0.6);
-      transition: height 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+      transition: height 0.8s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
-    /* Slower Bottom-Up Stout Fill Stopping Just Below the Head Bar */
+    /* Even Slower Bottom-Up Stout Fill Reaching Just Below the Head Bar */
     #bottomStoutFill {
       position: absolute;
       bottom: 0;
@@ -78,8 +78,8 @@
       height: 0%;
       background: #0c0b0a;
       z-index: 10000;
-      /* Slower duration and smooth settling curve */
-      transition: height 2.2s cubic-bezier(0.25, 1, 0.5, 1);
+      /* Much slower 3.8s duration for a relaxed pour */
+      transition: height 3.8s cubic-bezier(0.25, 1, 0.5, 1);
       border-top-left-radius: 1.5rem;
       border-top-right-radius: 1.5rem;
       box-shadow: 0 -6px 20px rgba(212, 175, 55, 0.25);
@@ -347,26 +347,25 @@
       renderApp(); 
       lucide.createIcons(); 
 
-      // WIDER STREAM & SLOWER POUR STOPPING JUST BELOW THE HEAD
+      // EVEN SLOWER POUR STOPPING RIGHT UNDER THE WHITE HEADER
       setTimeout(() => {
         document.getElementById('tapStream').style.height = '100%';
-      }, 100);
+      }, 150);
 
       setTimeout(() => {
-        // Fills to 92% height so it stops right underneath the white header bar
-        document.getElementById('bottomStoutFill').style.height = '92%';
-      }, 400);
+        // Fills to 84% height so it stops precisely below the header bar
+        document.getElementById('bottomStoutFill').style.height = '84%';
+      }, 450);
 
       setTimeout(() => {
-        // Cut off the tap stream right before fading out
         document.getElementById('tapStream').style.opacity = '0';
-      }, 2300);
+      }, 3500);
 
       setTimeout(() => {
         const overlay = document.getElementById('pourOverlay');
         overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 600);
-      }, 2700);
+        setTimeout(() => overlay.remove(), 700);
+      }, 4100);
     });
 
     function toggleDataDropdown(e) {
