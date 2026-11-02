@@ -53,18 +53,39 @@
       z-index: 40;
     }
 
-    /* 2. ENHANCED HARP WATERMARK (Visible & Elegant) */
+    /* 2. PROPER IRISH HARP WATERMARK BACKGROUND */
     .harp-watermark {
       position: fixed;
       top: 55%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 380px;
-      height: 380px;
-      opacity: 0.07;
+      width: 320px;
+      height: 320px;
+      opacity: 0.08;
       pointer-events: none;
       z-index: 0;
-      filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.1));
+    }
+
+    /* 3. SURGE & SETTLE BUBBLE ANIMATION */
+    .bubble-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .bubble {
+      position: absolute;
+      bottom: -20px;
+      background: radial-gradient(circle, rgba(212,175,55,0.8) 0%, rgba(212,175,55,0.2) 70%, transparent 100%);
+      border-radius: 50%;
+      animation: riseBubble linear infinite;
+    }
+    @keyframes riseBubble {
+      0% { transform: translateY(0) scale(0.6); opacity: 0; }
+      20% { opacity: 0.6; }
+      80% { opacity: 0.4; }
+      100% { transform: translateY(-105vh) scale(1.2); opacity: 0; }
     }
 
     /* Guinness Head & Curved Glass Rim */
@@ -81,16 +102,6 @@
       border-bottom-right-radius: 1.25rem;
     }
 
-    /* 3. SURGE & SETTLE ANIMATION (Applied cleanly on render) */
-    @keyframes surgeSettle {
-      0% { opacity: 0; transform: translateY(16px); filter: blur(4px); }
-      60% { opacity: 0.8; transform: translateY(-2px); filter: blur(0px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-    .surge-anim {
-      animation: surgeSettle 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
     .text-accent { color: var(--brand-accent); }
     .bg-accent { background-color: var(--brand-accent); }
     .bg-accent-soft { background-color: var(--brand-accent-bg); }
@@ -104,9 +115,18 @@
 </head>
 <body class="min-h-screen pb-12">
 
-  <!-- 2. CLEAR IRISH HARP WATERMARK SVG -->
+  <!-- 3. SURGE & SETTLE BUBBLES -->
+  <div class="bubble-container">
+    <div class="bubble" style="left: 15%; width: 6px; height: 6px; animation-duration: 7s; animation-delay: 0s;"></div>
+    <div class="bubble" style="left: 35%; width: 4px; height: 4px; animation-duration: 9s; animation-delay: 2s;"></div>
+    <div class="bubble" style="left: 55%; width: 5px; height: 5px; animation-duration: 6s; animation-delay: 1s;"></div>
+    <div class="bubble" style="left: 75%; width: 7px; height: 7px; animation-duration: 8s; animation-delay: 3s;"></div>
+    <div class="bubble" style="left: 85%; width: 4px; height: 4px; animation-duration: 10s; animation-delay: 1.5s;"></div>
+  </div>
+
+  <!-- 2. IRISH HARP WATERMARK SVG -->
   <svg class="harp-watermark" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2ZM12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8,8,3.59,8,8-3.59,8-8,8Zm-1-13h2v5.5h-2ZM11,14.5h2V16.5h-2Z"/>
+    <path d="M12 2C9.5 2 7.5 3.5 6.5 5.5C6.1 6.3 6 7.1 6 8V16C6 18.2 7.8 20 10 20C11.5 20 12.8 19.1 13.5 17.8C13.8 18.5 14.5 19 15.3 19C16.8 19 18 17.8 18 16.3V8C18 7.1 17.9 6.3 17.5 5.5C16.5 3.5 14.5 2 12 2ZM10 18C8.9 18 8 17.1 8 16V8C8 7.5 8.1 7 8.3 6.5C8.9 5.2 10.3 4.2 12 4.2C13.7 4.2 15.1 5.2 15.7 6.5C15.9 7 16 7.5 16 8V16.3C16 16.7 15.7 17 15.3 17C14.9 17 14.6 16.7 14.6 16.3V9.5H13.2V16.5C13.2 17.3 12.5 18 11.7 18H10ZM10.5 8H13.5V11.5H10.5V8Z"/>
   </svg>
 
   <!-- HEADER -->
@@ -137,7 +157,7 @@
     <div class="settle-line"></div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6 relative z-10 surge-anim">
+  <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6 relative z-10">
     <!-- STATS -->
     <div class="grid grid-cols-3 gap-2.5">
       <div class="bg-stone-900/60 border border-stone-800 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
