@@ -108,7 +108,7 @@
     .bubble {
       position: absolute;
       bottom: -30px;
-      background: radial-gradient(circle, rgba(212,175,55,0.95) 0%, rgba(212,175,55,0.4) 60%, transparent 100%);
+      background: radial-gradient(circle, rgba(230,57,70,0.95) 0%, rgba(212,175,55,0.4) 60%, transparent 100%);
       border-radius: 50%;
       animation: riseBubble linear infinite;
     }
@@ -119,7 +119,7 @@
       100% { transform: translateY(-105vh) scale(1.3); opacity: 0; }
     }
 
-    /* GUINNESS HEAD & DEEP RUBY SETTLE LINE */
+    /* GUINNESS HEAD & ALL-RUBY RED SETTLE LINE */
     .guinness-head-bar {
       background: linear-gradient(180deg, #FFFFFF 0%, #F8F4EC 75%, #F0E8D8 100%);
       box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
@@ -128,10 +128,10 @@
     }
     .settle-line {
       height: 4px;
-      background: linear-gradient(90deg, #8B0000 0%, #D4AF37 25%, #A10000 50%, #D4AF37 75%, #8B0000 100%);
+      background: linear-gradient(90deg, #660000 0%, #8B0000 25%, #E63946 50%, #8B0000 75%, #660000 100%);
       border-bottom-left-radius: 1.25rem;
       border-bottom-right-radius: 1.25rem;
-      box-shadow: 0 0 10px rgba(139, 0, 0, 0.8);
+      box-shadow: 0 0 12px rgba(230, 57, 70, 0.9);
     }
 
     /* RUBY GLOW ACCENTS */
@@ -161,12 +161,15 @@
 
   <!-- SURGE & SETTLE BUBBLES -->
   <div class="bubble-container">
-    <div class="bubble" style="left: 10%; width: 7px; height: 7px; animation-duration: 5s; animation-delay: 0s;"></div>
-    <div class="bubble" style="left: 25%; width: 5px; height: 5px; animation-duration: 7s; animation-delay: 1.5s;"></div>
-    <div class="bubble" style="left: 45%; width: 8px; height: 8px; animation-duration: 4.5s; animation-delay: 0.8s;"></div>
-    <div class="bubble" style="left: 60%; width: 6px; height: 6px; animation-duration: 6.5s; animation-delay: 2.2s;"></div>
-    <div class="bubble" style="left: 80%; width: 7px; height: 7px; animation-duration: 5.5s; animation-delay: 0.4s;"></div>
-    <div class="bubble" style="left: 90%; width: 5px; height: 5px; animation-duration: 8s; animation-delay: 3s;"></div>
+    <div class="bubble" style="left: 6%; width: 6px; height: 6px; animation-duration: 4.2s; animation-delay: 0.2s;"></div>
+    <div class="bubble" style="left: 15%; width: 8px; height: 8px; animation-duration: 5.5s; animation-delay: 1.1s;"></div>
+    <div class="bubble" style="left: 28%; width: 5px; height: 5px; animation-duration: 6.8s; animation-delay: 0.5s;"></div>
+    <div class="bubble" style="left: 38%; width: 7px; height: 7px; animation-duration: 4.8s; animation-delay: 2.4s;"></div>
+    <div class="bubble" style="left: 50%; width: 9px; height: 9px; animation-duration: 6.0s; animation-delay: 0.9s;"></div>
+    <div class="bubble" style="left: 62%; width: 6px; height: 6px; animation-duration: 5.2s; animation-delay: 1.8s;"></div>
+    <div class="bubble" style="left: 74%; width: 8px; height: 8px; animation-duration: 4.5s; animation-delay: 0.3s;"></div>
+    <div class="bubble" style="left: 85%; width: 5px; height: 5px; animation-duration: 7.2s; animation-delay: 2.8s;"></div>
+    <div class="bubble" style="left: 93%; width: 7px; height: 7px; animation-duration: 5.0s; animation-delay: 1.4s;"></div>
   </div>
 
   <!-- HEADER -->
@@ -211,7 +214,7 @@
         </div>
       </div>
     </div>
-    <!-- Deep Ruby Settle Line -->
+    <!-- All-Ruby Red Settle Line -->
     <div class="settle-line"></div>
   </header>
 
@@ -374,7 +377,7 @@
       renderApp(); 
       lucide.createIcons(); 
 
-      // EVEN SLOWER POUR STOPPING RIGHT UNDER THE WHITE HEADER
+      // SLOW POUR STOPPING RIGHT UNDER THE WHITE HEADER
       setTimeout(() => {
         document.getElementById('tapStream').style.height = '100%';
       }, 150);
@@ -584,14 +587,12 @@
       }
       saveToStorage(); resetAndHideForm(); exportBackup(true);
 
-      // If it's a new entry (or edited), calculate its rank and show the success popup
       if (!editId && !isNoGuinness({ notes, pubName, pintScore })) {
         showRankResultModal(newId, pubName, avgScore);
       }
     }
 
     function showRankResultModal(id, pubName, score) {
-      // Sort main entries by average score descending to find rank
       let main = pintEntries.filter(i => !isNoGuinness(i));
       main.sort((a,b) => b.avgScore - a.avgScore);
       let rankIdx = main.findIndex(i => i.id === id);
