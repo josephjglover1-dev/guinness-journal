@@ -69,7 +69,7 @@
       transition: height 0.8s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
-    /* Even Slower Bottom-Up Stout Fill Reaching Just Below the Head Bar */
+    /* Bottom-Up Stout Fill Reaching Just Below the Head Bar */
     #bottomStoutFill {
       position: absolute;
       bottom: 0;
@@ -78,7 +78,6 @@
       height: 0%;
       background: #0c0b0a;
       z-index: 10000;
-      /* Much slower 3.8s duration for a relaxed pour */
       transition: height 3.8s cubic-bezier(0.25, 1, 0.5, 1);
       border-top-left-radius: 1.5rem;
       border-top-right-radius: 1.5rem;
@@ -270,6 +269,34 @@
       </form>
     </div>
 
+    <!-- NEW ENTRY RANK & SCORE MODAL -->
+    <div id="rankResultModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-stone-900 border border-accent-soft rounded-2xl w-full max-w-sm p-6 space-y-5 text-center shadow-2xl relative">
+        <div class="w-14 h-14 bg-accent-soft border border-accent rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg">
+          🍺
+        </div>
+        <div>
+          <h3 id="rankModalTitle" class="text-lg font-black text-stone-100">Pint Logged Successfully!</h3>
+          <p id="rankModalPub" class="text-xs text-stone-400 mt-0.5"></p>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3 py-3 border-y border-stone-800">
+          <div class="bg-stone-950 p-3 rounded-xl border border-stone-800">
+            <div class="text-[10px] text-stone-400 uppercase font-semibold">Leaderboard Rank</div>
+            <div id="rankModalPosition" class="text-xl font-black text-accent mt-1">#1</div>
+          </div>
+          <div class="bg-stone-950 p-3 rounded-xl border border-stone-800">
+            <div class="text-[10px] text-stone-400 uppercase font-semibold">Overall Score</div>
+            <div id="rankModalScore" class="text-xl font-black text-stone-100 mt-1">9.33</div>
+          </div>
+        </div>
+
+        <button onclick="closeRankModal()" class="w-full py-2.5 text-xs font-semibold bg-accent text-stone-950 rounded-xl shadow-md transition active:scale-95">
+          View in Leaderboard
+        </button>
+      </div>
+    </div>
+
     <!-- PASTE JSON MODAL -->
     <div id="pasteModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
       <div class="bg-stone-900 border border-stone-800 rounded-2xl w-full max-w-lg p-5 space-y-4 shadow-2xl">
@@ -353,7 +380,6 @@
       }, 150);
 
       setTimeout(() => {
-        // Fills to 84% height so it stops precisely below the header bar
         document.getElementById('bottomStoutFill').style.height = '84%';
       }, 450);
 
@@ -535,6 +561,7 @@
       document.getElementById('formContainerWrapper').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); lucide.createIcons();
     }
     function setFormDate(t) { if (t === 'today') document.getElementById('visitDate').value = new Date().toISOString().split('T')[0]; }
+    
     function handleFormSubmit(e) {
       e.preventDefault(); const pubName = document.getElementById('pubName').value.trim(); if (!pubName) return;
       const editId = document.getElementById('editEntryId').value;
@@ -547,14 +574,40 @@
       if (country.toLowerCase() === 'ireland' && county && !county.toLowerCase().startsWith('county')) county = `County ${county}`;
 
       const avgScore = pintScore === 0 ? 0 : parseFloat(((pintScore + ambienceScore + staffScore) / 3).toFixed(2));
+      let newId = editId;
       if (editId) {
         const idx = pintEntries.findIndex(x => x.id === editId);
         if (idx !== -1) pintEntries[idx] = { ...pintEntries[idx], pubName, country, city, county, area, visitDate, pintScore, ambienceScore, staffScore, avgScore, notes };
       } else {
-        pintEntries.unshift({ id: 'pint_' + Date.now(), pubName, country, city, county, area, visitDate, pintScore, ambienceScore, staffScore, avgScore, notes });
+        newId = 'pint_' + Date.now();
+        pintEntries.unshift({ id: newId, pubName, country, city, county, area, visitDate, pintScore, ambienceScore, staffScore, avgScore, notes });
       }
       saveToStorage(); resetAndHideForm(); exportBackup(true);
+
+      // If it's a new entry (or edited), calculate its rank and show the success popup
+      if (!editId && !isNoGuinness({ notes, pubName, pintScore })) {
+        showRankResultModal(newId, pubName, avgScore);
+      }
     }
+
+    function showRankResultModal(id, pubName, score) {
+      // Sort main entries by average score descending to find rank
+      let main = pintEntries.filter(i => !isNoGuinness(i));
+      main.sort((a,b) => b.avgScore - a.avgScore);
+      let rankIdx = main.findIndex(i => i.id === id);
+      let rankText = rankIdx !== -1 ? `#${rankIdx + 1}` : '—';
+
+      document.getElementById('rankModalPub').innerText = pubName;
+      document.getElementById('rankModalPosition').innerText = rankText;
+      document.getElementById('rankModalScore').innerText = score.toFixed(2);
+      document.getElementById('rankResultModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeRankModal() {
+      document.getElementById('rankResultModal').classList.add('hidden');
+    }
+
     function populateFormSuggestions() {
       const getUnique = (k) => [...new Set(pintEntries.map(e => e[k]).filter(Boolean))].sort();
       ['pubSuggestions','countrySuggestions','citySuggestions','countySuggestions','areaSuggestions'].forEach((id, idx) => {
