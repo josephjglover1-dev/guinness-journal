@@ -83,39 +83,6 @@
       border-top-right-radius: 1.5rem;
       box-shadow: 0 -6px 20px rgba(212, 175, 55, 0.25);
     }
-
-    /* DRINK PINT ANIMATION OVERLAY (TILT & DRAIN LIQUID) */
-    #drinkOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.95);
-      z-index: 9998;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.25s ease;
-      overflow: hidden;
-    }
-
-    #drinkStoutLiquid {
-      position: absolute;
-      bottom: -10%;
-      left: -10%;
-      width: 130%;
-      height: 95%;
-      background: #0c0b0a;
-      box-shadow: 0 -8px 25px rgba(212, 175, 55, 0.3);
-      transform-origin: bottom center;
-      transform: rotate(0deg);
-      transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1), clip-path 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-      /* Slanted liquid surface like a tilted glass */
-      clip-path: polygon(0% 15%, 100% 0%, 100% 100%, 0% 100%);
-    }
-
-    #drinkStoutLiquid.drinking {
-      /* Tilts sharply and sweeps the liquid surface upward/diagonally off screen */
-      transform: rotate(-38deg) translateY(-15%);
-      clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-    }
     
     /* Glass Edge Specular Highlight */
     body::before {
@@ -192,11 +159,6 @@
     <div id="bottomStoutFill"></div>
   </div>
 
-  <!-- DRINK PINT ANIMATION OVERLAY -->
-  <div id="drinkOverlay">
-    <div id="drinkStoutLiquid"></div>
-  </div>
-
   <!-- SURGE & SETTLE BUBBLES -->
   <div class="bubble-container">
     <div class="bubble" style="left: 6%; width: 6px; height: 6px; animation-duration: 4.2s; animation-delay: 0.2s;"></div>
@@ -214,9 +176,9 @@
   <header class="guinness-head-bar text-stone-900 sticky top-0 z-30 shadow-2xl">
     <div class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
       <div class="flex items-center gap-3">
-        <button onclick="drinkPintAnimation()" title="Drink Pint" class="w-11 h-11 rounded-2xl bg-stone-950 border-2 border-amber-400 flex items-center justify-center text-2xl shadow-lg ring-2 ring-stone-900/10 transform hover:rotate-6 active:scale-90 transition-transform cursor-pointer">
+        <div class="w-11 h-11 rounded-2xl bg-stone-950 border-2 border-amber-400 flex items-center justify-center text-2xl shadow-lg ring-2 ring-stone-900/10 transform hover:rotate-6 transition-transform">
           🍺
-        </button>
+        </div>
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-xl font-black tracking-tight text-stone-950">Guinness Pint Journal</h1>
@@ -405,7 +367,7 @@
     };
     const scotlandLocs = ['glasgow', 'balloch', 'edinburgh', 'aberdeen', 'dundee', 'inverness', 'stirling', 'perth'];
 
-    let pintEntries = [], currentView = 'table', currentTheme = 'gold', expandedCountry = null, isDrinking = false;
+    let pintEntries = [], currentView = 'table', currentTheme = 'gold', expandedCountry = null;
 
     window.addEventListener('DOMContentLoaded', () => { 
       loadFromStorage(); 
@@ -434,32 +396,6 @@
         setTimeout(() => overlay.remove(), 700);
       }, 4100);
     });
-
-    function drinkPintAnimation() {
-      if (isDrinking) return;
-      isDrinking = true;
-
-      const overlay = document.getElementById('drinkOverlay');
-      const liquid = document.getElementById('drinkStoutLiquid');
-
-      // Reset position before showing
-      liquid.classList.remove('drinking');
-      overlay.style.opacity = '1';
-
-      // Trigger the tilted liquid sweep
-      setTimeout(() => {
-        liquid.classList.add('drinking');
-      }, 100);
-
-      // Fade back out to normal journal
-      setTimeout(() => {
-        overlay.style.opacity = '0';
-        setTimeout(() => {
-          liquid.classList.remove('drinking');
-          isDrinking = false;
-        }, 400);
-      }, 1700);
-    }
 
     function toggleDataDropdown(e) {
       e.stopPropagation();
