@@ -84,34 +84,37 @@
       box-shadow: 0 -6px 20px rgba(212, 175, 55, 0.25);
     }
 
-    /* DRINK PINT ANIMATION OVERLAY */
+    /* DRINK PINT ANIMATION OVERLAY (TILT & DRAIN LIQUID) */
     #drinkOverlay {
       position: fixed;
       inset: 0;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.95);
       z-index: 9998;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.35s ease;
+      transition: opacity 0.25s ease;
+      overflow: hidden;
     }
 
     #drinkStoutLiquid {
       position: absolute;
-      bottom: 0;
-      left: -20%;
-      width: 140%;
-      height: 85%;
+      bottom: -10%;
+      left: -10%;
+      width: 130%;
+      height: 95%;
       background: #0c0b0a;
-      border-top-left-radius: 2rem;
-      border-top-right-radius: 2rem;
-      box-shadow: 0 -6px 20px rgba(212, 175, 55, 0.25);
-      transform-origin: bottom right;
-      transition: transform 1.6s cubic-bezier(0.55, 0.055, 0.675, 0.19), opacity 1.4s ease-in;
+      box-shadow: 0 -8px 25px rgba(212, 175, 55, 0.3);
+      transform-origin: bottom center;
+      transform: rotate(0deg);
+      transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1), clip-path 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+      /* Slanted liquid surface like a tilted glass */
+      clip-path: polygon(0% 15%, 100% 0%, 100% 100%, 0% 100%);
     }
 
-    #drinkStoutLiquid.draining {
-      transform: translateX(115%) rotate(28deg) scaleY(0.25);
-      opacity: 0.1;
+    #drinkStoutLiquid.drinking {
+      /* Tilts sharply and sweeps the liquid surface upward/diagonally off screen */
+      transform: rotate(-38deg) translateY(-15%);
+      clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
     }
     
     /* Glass Edge Specular Highlight */
@@ -440,22 +443,22 @@
       const liquid = document.getElementById('drinkStoutLiquid');
 
       // Reset position before showing
-      liquid.classList.remove('draining');
+      liquid.classList.remove('drinking');
       overlay.style.opacity = '1';
 
-      // Trigger tilt and drain to the side
+      // Trigger the tilted liquid sweep
       setTimeout(() => {
-        liquid.classList.add('draining');
-      }, 150);
+        liquid.classList.add('drinking');
+      }, 100);
 
-      // Fade back out to normal journal without any toast message
+      // Fade back out to normal journal
       setTimeout(() => {
         overlay.style.opacity = '0';
         setTimeout(() => {
-          liquid.classList.remove('draining');
+          liquid.classList.remove('drinking');
           isDrinking = false;
         }, 400);
-      }, 1750);
+      }, 1700);
     }
 
     function toggleDataDropdown(e) {
