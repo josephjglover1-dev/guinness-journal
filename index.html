@@ -366,6 +366,13 @@
       "felixstowe": "Suffolk", "lowestoft": "Suffolk"
     };
     const scotlandLocs = ['glasgow', 'balloch', 'edinburgh', 'aberdeen', 'dundee', 'inverness', 'stirling', 'perth'];
+    const irishCounties = [
+      'antrim', 'armagh', 'carlow', 'cavan', 'clare', 'cork', 'derry', 'londonderry',
+      'donegal', 'down', 'dublin', 'fermanagh', 'galway', 'kerry', 'kildare', 'kilkenny',
+      'laois', 'leitrim', 'limerick', 'longford', 'louth', 'mayo', 'meath', 'monaghan',
+      'offaly', 'roscommon', 'sligo', 'tipperary', 'tyrone', 'waterford', 'westmeath',
+      'wexford', 'wicklow'
+    ];
 
     let pintEntries = [], currentView = 'table', currentTheme = 'gold', expandedCountry = null;
 
@@ -419,6 +426,16 @@
       return `${parseInt(parts[2], 10)} ${months[m] || parts[1]} ${parts[0]}`;
     }
 
+    function normalizeIrishCountyName(name) {
+      const clean = (name || '').trim().replace(/^county\s+/i, '');
+      if (!clean) return '';
+      const titleCase = clean.replace(/\b\w/g, ch => ch.toUpperCase());
+      if (irishCounties.includes(clean.toLowerCase())) {
+        return `County ${titleCase}`;
+      }
+      return titleCase;
+    }
+
     function isNoGuinness(item) {
       const notes = (item.notes || '').toLowerCase(), name = (item.pubName || '').toLowerCase();
       return notes.includes('no guinness') || name.includes('no guinness') || item.pintScore === 0;
@@ -458,6 +475,20 @@
           if (e.country !== 'Scotland') { e.country = 'Scotland'; updated = true; }
         } else if (c === 'uk' || c === 'england' || !c) {
           if (e.country !== 'England') { e.country = 'England'; updated = true; }
+        }
+
+        if ((e.country || '').trim().toLowerCase() === 'ireland') {
+          let rawCounty = (e.county || '').trim();
+          if (!rawCounty && irishCounties.includes(city)) {
+            rawCounty = city;
+          }
+          if (rawCounty) {
+            const normalized = normalizeIrishCountyName(rawCounty);
+            if (e.county !== normalized) {
+              e.county = normalized;
+              updated = true;
+            }
+          }
         }
       });
       if (updated) localStorage.setItem('guinness_pints', JSON.stringify(pintEntries));
@@ -523,7 +554,14 @@
         const pct = Math.round((count / total) * 100), exp = expandedCountry === c;
         let sub = '';
         if (exp) {
-          const subTally = {}; pintEntries.filter(e => (e.country || 'Unknown') === c).forEach(e => { const loc = e.county || e.city || 'Other'; subTally[loc] = (subTally[loc] || 0) + 1; });
+          const subTally = {};
+          pintEntries.filter(e => (e.country || 'Unknown') === c).forEach(e => {
+            let loc = (e.county || e.city || 'Other').trim();
+            if (c.toLowerCase() === 'ireland' && loc.toLowerCase() !== 'other') {
+              loc = normalizeIrishCountyName(loc);
+            }
+            subTally[loc] = (subTally[loc] || 0) + 1;
+          });
           sub = `<div class="mt-2 pt-2 border-t border-stone-800 space-y-1 pl-2"><div class="text-[10px] font-semibold text-stone-400 uppercase">County / City Breakdown:</div>${Object.entries(subTally).sort((a,b)=>b[1]-a[1]).map(([l, sc]) => `<div class="flex justify-between items-center text-[11px] text-stone-300 py-0.5"><span class="truncate pr-2">• ${l}</span><span class="text-accent">${sc} pubs</span></div>`).join('')}</div>`;
         }
         return `<div class="bg-stone-950 p-3 rounded-xl border ${exp ? 'border-accent-soft' : 'border-stone-800/80'} cursor-pointer space-y-1.5" onclick="toggleCountryExpand('${c}')"><div class="flex justify-between items-center text-xs"><span class="font-bold text-stone-200 flex items-center gap-1.5">${c} <i data-lucide="${exp?'chevron-up':'chevron-down'}" class="w-3.5 h-3.5 text-stone-400"></i></span><span class="text-accent font-semibold">${count} pubs (${pct}%)</span></div><div class="w-full h-2 bg-stone-800 rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width: ${pct}%"></div></div>${sub}</div>`;
@@ -534,7 +572,10 @@
     function formatLocation(item) {
       let area = (item.area || '').trim(), city = (item.city || '').trim(), county = (item.county || '').trim(), country = (item.country || '').trim();
       if ((!country || country.toLowerCase() === 'england' || country.toLowerCase() === 'uk') && city && !county && ukCountyMap[city.toLowerCase()]) county = ukCountyMap[city.toLowerCase()];
-      if (country.toLowerCase() === 'ireland' && county && !county.toLowerCase().startsWith('county')) county = `County ${county}`;
+      if (country.toLowerCase() === 'ireland') {
+        if (!county && irishCounties.includes(city.toLowerCase())) county = city;
+        if (county) county = normalizeIrishCountyName(county);
+      }
       
       const rawParts = [area, city, county, country].filter(Boolean);
       const uniqueParts = [];
@@ -583,7 +624,10 @@
       if (scotlandLocs.some(l => city.toLowerCase().includes(l) || notes.toLowerCase().includes('scotland'))) country = 'Scotland';
       else if (!country || country.toLowerCase() === 'uk' || country.toLowerCase() === 'england') country = 'England';
       if (country.toLowerCase() === 'england' && city && !county && ukCountyMap[city.toLowerCase()]) county = ukCountyMap[city.toLowerCase()];
-      if (country.toLowerCase() === 'ireland' && county && !county.toLowerCase().startsWith('county')) county = `County ${county}`;
+      if (country.toLowerCase() === 'ireland') {
+        if (!county && irishCounties.includes(city.toLowerCase())) county = city;
+        if (county) county = normalizeIrishCountyName(county);
+      }
 
       const avgScore = pintScore === 0 ? 0 : parseFloat(((pintScore + ambienceScore + staffScore) / 3).toFixed(2));
       let newId = editId;
